@@ -4,10 +4,25 @@
     <h2 class="text-2xl font-medium mb-4">Two-factor authentication</h2>
     
     <div class="flex justify-between items-center">
-        <p class="text-gray-600">ระบบบังคับให้ตั้งค่า Two-factor authentication</p>
-        <button @click="$router.push('/setup/2fa-qr')" class="bg-cyan-400 text-white px-4 py-2 rounded shadow hover:bg-cyan-500">
+        <p class="text-gray-600">ระบบบังคับให้ตั้งค่า Two-factor authentication เพื่อความปลอดภัย</p>
+        <button @click="goNext" class="bg-cyan-400 text-white px-4 py-2 rounded shadow hover:bg-cyan-500">
             + ตั้งค่า Authenticator
         </button>
     </div>
   </div>
 </template>
+
+<script setup>
+import { useRoute, useRouter } from 'vue-router'
+
+const router = useRouter()
+const route = useRoute()
+
+const goNext = () => {
+    // ส่งไปหน้า QR Code
+    router.push({
+        path: '/install/two-factor-qr',
+        query: { email: route.query.email }
+    })
+}
+</script>

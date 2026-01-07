@@ -18,7 +18,8 @@ import TwoFactorVerify from '../views/install/TwoFactorVerify.vue'
 import TwoFactorComplete from '../views/install/TwoFactorComplete.vue'
 
 // Views (Admin)
-import Dashboard from '../views/admin/Dashboard.vue' 
+import Dashboard from '../views/admin/Dashboard.vue'
+import WebUsers from '../views/admin/WebUsers.vue' 
 
 const router = createRouter({
   history: createWebHistory(),
@@ -28,27 +29,30 @@ const router = createRouter({
       path: '/',
       component: AuthLayout,
       children: [
-        { path: '', redirect: '/login' },
+        { path: '', redirect: '/login' }, 
         { path: 'login', component: LoginView },
         { path: 'login-2fa', component: LoginTwoFactor }, 
         
-        // Flow ติดตั้งเดิม
+        // --- 🟢 Install Flow ---
         { path: 'install/create-admin', component: CreateAdmin },
         { path: 'install/loading', component: LoadingStep },
         { path: 'install/success', component: InstallSuccess },
-        { path: 'setup/2fa-intro', component: TwoFactorIntro },
-        { path: 'setup/2fa-qr', component: TwoFactorQR },
-        { path: 'setup/2fa-verify', component: TwoFactorVerify },
-        { path: 'setup/2fa-complete', component: TwoFactorComplete },
+        
+        // --- 🔵 2FA Setup Flow (ใช้ชื่อ path แบบมีขีดกลาง - ให้เหมือนกันหมด) ---
+        { path: 'install/two-factor-intro', component: TwoFactorIntro },
+        { path: 'install/two-factor-qr', component: TwoFactorQR },
+        { path: 'install/two-factor-verify', component: TwoFactorVerify },
+        { path: 'install/two-factor-complete', component: TwoFactorComplete },
       ]
     },
 
-    //  Admin (Dashboard) -> ใช้ AdminLayout
+    // 2. กลุ่ม Admin
     {
       path: '/admin',
       component: AdminLayout,
       children: [
-        { path: 'dashboard', component: Dashboard }
+        { path: 'dashboard', component: Dashboard },
+        { path: 'web-users', component: WebUsers } 
       ]
     }
   ]

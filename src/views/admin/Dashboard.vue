@@ -7,26 +7,26 @@
       <div class="bg-cyan-500 rounded-lg p-4 text-white shadow relative overflow-hidden">
         <h3 class="font-bold text-sm mb-1">Mobile Overview</h3>
         <p class="text-xs opacity-90 mb-3">ผู้ใช้งาน Mobile</p>
-        <div class="text-3xl font-bold mb-1">200 <span class="text-sm font-normal">บัญชี</span></div>
+        <div class="text-3xl font-bold mb-1">{{ stats.totalMobileUsers }} <span class="text-sm font-normal">บัญชี</span></div>
         <div class="text-[10px] opacity-80 mt-2">
-            อัปเดต: {{ currentDate }} 02:30 AM
+            อัปเดต: {{ currentDate }} {{ currentTime }}
         </div>
       </div>
 
       <div class="bg-orange-500 rounded-lg p-4 text-white shadow">
         <h3 class="font-bold text-sm mb-1">ลูกค้าขอบัตรแข็งเข้ามา</h3>
-        <div class="text-3xl font-bold mb-1 mt-6">100 <span class="text-sm font-normal">รายการ</span></div>
+        <div class="text-3xl font-bold mb-1 mt-6">{{ stats.cardRequests }} <span class="text-sm font-normal">รายการ</span></div>
         <div class="text-[10px] opacity-80 mt-2">
-            อัปเดต: {{ currentDate }} 02:30 AM
+            อัปเดต: {{ currentDate }} {{ currentTime }}
         </div>
       </div>
 
       <div class="bg-blue-600 rounded-lg p-4 text-white shadow">
         <h3 class="font-bold text-sm mb-1">Web Overview</h3>
         <p class="text-xs opacity-90 mb-3">ผู้ใช้งาน web Portal</p>
-        <div class="text-3xl font-bold mb-1">100 <span class="text-sm font-normal">บัญชี</span></div>
+        <div class="text-3xl font-bold mb-1">{{ stats.totalWebUsers }} <span class="text-sm font-normal">บัญชี</span></div>
         <div class="text-[10px] opacity-80 mt-2">
-            อัปเดต: {{ currentDate }} 02:30 AM
+            อัปเดต: {{ currentDate }} {{ currentTime }}
         </div>
       </div>
     </div>
@@ -36,14 +36,14 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
        <div class="bg-yellow-400 rounded-lg p-4 text-black shadow">
           <h4 class="font-bold text-sm">รอการอนุมัติคำร้องขอ</h4>
-          <div class="text-3xl font-bold mt-2">50 <span class="text-sm font-normal">รายการ</span></div>
-          <div class="text-[10px] opacity-70 mt-2">อัปเดต: {{ currentDate }} 02:30 AM</div>
+          <div class="text-3xl font-bold mt-2">{{ stats.frozenCards }} <span class="text-sm font-normal">รายการ</span></div>
+          <div class="text-[10px] opacity-70 mt-2">อัปเดต: {{ currentDate }} {{ currentTime }}</div>
        </div>
 
        <div class="bg-green-500 rounded-lg p-4 text-white shadow">
           <h4 class="font-bold text-sm">อนุมัติคำร้องขอแล้ว</h4>
-          <div class="text-3xl font-bold mt-2">50 <span class="text-sm font-normal">รายการ</span></div>
-          <div class="text-[10px] opacity-80 mt-2">อัปเดต: {{ currentDate }} 02:30 AM</div>
+          <div class="text-3xl font-bold mt-2">{{ stats.approvedRequests }} <span class="text-sm font-normal">รายการ</span></div>
+          <div class="text-[10px] opacity-80 mt-2">อัปเดต: {{ currentDate }} {{ currentTime }}</div>
        </div>
        
        <div class="hidden md:block"></div>
@@ -51,50 +51,67 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
-            <h4 class="font-bold mb-2 text-sm text-gray-700">สถิติผู้ใช้งานรายเดือน</h4>
+            <h4 class="font-bold mb-2 text-sm text-gray-700">สถิติผู้ใช้งานใหม่รายเดือน Mobile</h4>
             <div class="h-56">
                 <Bar :data="chartData" :options="chartOptions" />
             </div>
         </div>
-
-        <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
-            <h4 class="font-bold mb-2 text-sm text-gray-700">ธุรกรรมล่าสุด (Transaction)</h4>
-            <div class="h-56">
-                 <Line :data="lineChartData" :options="chartOptions" />
-            </div>
-        </div>
     </div>
-
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getAdminDashboardStats } from '@/services/adminService'
+
 // Import Chart Components
-import { Bar, Line } from 'vue-chartjs'
+import { Bar } from 'vue-chartjs'
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement } from 'chart.js'
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement)
 
+// จัดการเรื่องวันเวลา
 const currentDate = new Date().toLocaleDateString('th-TH')
+const currentTime = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+
+// ตัวแปรสำหรับเก็บข้อมูลจริง
+const stats = ref({
+  totalMobileUsers: 0,
+  totalWebUsers: 0,
+  cardRequests: 0,
+  approvedRequests: 0,
+  frozenCards: 0
+})
+
+//  ดึงข้อมูลจาก API
+const fetchDashboardData = async () => {
+  try {
+    const response = await getAdminDashboardStats()
+    const data = response.data
+    
+    stats.value = {
+      totalMobileUsers: data.totalMobileUsers,
+      totalWebUsers: data.totalWebUsers,
+      cardRequests: data.MocK_cardRequests,         // ลูกค้าขอบัตรแข็ง
+      approvedRequests: data.MoCK_approvedRequests, // อนุมัติแล้ว
+      frozenCards: data.Mock_frozenCards            // รออนุมัติ
+    }
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error)
+  }
+}
+
+//  เรียกใช้เมื่อโหลดหน้าเว็บ
+onMounted(() => {
+  fetchDashboardData()
+})
 
 const chartData = {
   labels: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.'],
   datasets: [{
-    label: 'ผู้ใช้งานใหม่',
+    label: 'ผู้ใช้งานใหม่ (Mobile)',
     backgroundColor: '#3b82f6',
-    data: [40, 20, 12, 39, 10, 80]
-  }]
-}
-
-const lineChartData = {
-  labels: ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
-  datasets: [{
-    label: 'Transaction',
-    borderColor: '#10b981',
-    backgroundColor: '#10b981',
-    data: [15, 25, 20, 45, 30, 60],
-    tension: 0.4
+    data: [40, 20, 10, 40, 10, 80]
   }]
 }
 

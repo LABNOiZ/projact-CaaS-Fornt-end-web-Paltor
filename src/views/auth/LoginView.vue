@@ -32,7 +32,7 @@
         :disabled="isLoading"
         class="w-full bg-green-500 text-white font-bold py-3 rounded-full hover:bg-green-600 transition shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
       >
-        <span v-if="isLoading">Loading...</span>
+        <span v-if="isLoading">Checking...</span>
         <span v-else>Sign In</span>
       </button>
 
@@ -58,42 +58,60 @@ const errorMessage = ref('')
 const isLoading = ref(false)
 
 const handleLogin = async () => {
-  // 1. เริ่มต้น: เคลียร์ Error และเปิด Loading
   isError.value = false
   errorMessage.value = ''
   isLoading.value = true
 
   try {
-    // 2. 🚀 ยิง API ไปที่หลังบ้าน
+    console.log("Attempting Login...")
+    
+    // 1. ยิง API Login
     const response = await authService.login(email.value, password.value)
+    const data = response.data
+    console.log("Login Response:", data)
 
-    console.log("API Login Success:", response.data)
+    // 2. เช็คผลลัพธ์
+    
+    //  กรณีที่ 1: ได้รับ Token (Login ผ่าน)
+    if (data.token || data.accessToken) {
+        const token = data.token || data.accessToken
+        localStorage.setItem('token', token)
 
-    // 3. ✅ ตรวจสอบเงื่อนไขเพื่อเปลี่ยนหน้า
-    // 🔥 แก้ไขตรงนี้: เพิ่มการเช็ค 'admin@novapay.com' ให้ไปหน้าสร้าง Admin
-    if (email.value === 'admin@novapay.com' || email.value.includes('setup')) {
-        // ถ้าเป็น Super Admin หรือ Setup -> ไปหน้าติดตั้งระบบ
-        console.log("Flow: Super Admin -> Go to Install")
-        router.push('/install/create-admin')
-    } else {
-        // ถ้าเป็น Admin คนอื่นๆ -> ไปหน้า 2FA
-        console.log("Flow: General Admin -> Go to 2FA")
-        router.push('/login-2fa')
+        // เช็คว่าเป็น Super Admin หรือไม่ 
+        // ตรวจสอบจาก Email (หรือถ้า Backend ส่ง Role มาให้ก็เช็ค Role ได้)
+        if (email.value.includes('super_admin') || email.value === 'admin@novapay.com') {
+            console.log(" Super Admin Login -> Go to Create Admin")
+            router.push('/install/create-admin')
+        } else {
+            // ถ้าเป็น User ทั่วไปที่มี Token แล้ว ให้ไป Dashboard
+            console.log(" User Login -> Go to Dashboard")
+            router.push('/admin/dashboard')
+        }
+    } 
+    // กรณีที่ 2: ต้องตั้งค่า 2FA (SETUP_REQUIRED)
+    else if (data.status === 'SETUP_REQUIRED') {
+        router.push({ 
+            path: '/install/two-factor-qr', 
+            query: { email: email.value } 
+        })
+    }
+    // กรณีที่ 3: ต้องกรอก OTP (OTP_REQUIRED)
+    else if (data.status === 'OTP_REQUIRED') {
+         router.push({ path: '/login-2fa', query: { email: email.value } })
+    }
+    else {
+        throw new Error(data.message || 'Login Failed')
     }
 
   } catch (error) {
-    // 4. ❌ ถ้า API ตอบว่าผิดพลาด
     console.error("Login Error:", error)
     isError.value = true
-    
-    // ดึงข้อความ Error จากหลังบ้านมาแสดง
-    if (error.response && error.response.data && error.response.data.message) {
-        errorMessage.value = error.response.data.message
+    if (error.response && error.response.data) {
+        errorMessage.value = error.response.data.message || 'Email หรือ Password ไม่ถูกต้อง'
     } else {
-        errorMessage.value = "Email หรือ Password ไม่ถูกต้อง (หรือเชื่อมต่อ Server ไม่ได้)"
+        errorMessage.value = 'ไม่สามารถเชื่อมต่อ Server ได้'
     }
   } finally {
-    // 5. ปิด Loading
     isLoading.value = false
   }
 }

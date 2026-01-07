@@ -1,39 +1,46 @@
 <template>
-  <div class="bg-gray-100 border border-blue-300 p-8 rounded-lg w-full max-w-xl shadow-md">
+  <div class="bg-gray-100 border border-blue-300 p-8 rounded-lg w-full max-w-xl shadow-md mx-auto mt-10">
     <p class="mb-6 font-medium text-gray-700">
       3. Enter the one-time code provided by the application and click Submit to finish setup.
     </p>
     
     <form @submit.prevent="handleSubmit">
       <div class="mb-6">
-        <label class="block font-bold mb-2 text-gray-700">one-time code</label>
+        <label class="block font-bold mb-2 text-gray-700">One-time code</label>
         
         <input 
           v-model="otpCode" 
-          @input="isError = false"
+          @input="handleInput"
           type="text" 
+          inputmode="numeric"
+          pattern="[0-9]*"
+          placeholder="Enter 6-digit code"
           class="w-full bg-gray-300 p-2 rounded text-center text-xl tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-500" 
+          :disabled="isLoading"
+          maxlength="6"
         />
       </div>
 
       <div v-if="isError" class="text-red-500 font-bold text-center mb-4 ">
-        รหัสผ่านไม่ถูกต้อง
+        {{ errorMessage }}
       </div>
 
       <div class="flex flex-col items-center gap-3">
         <button 
           type="submit" 
-          class="bg-green-500 text-white px-8 py-2 rounded w-40 hover:bg-green-600 transition shadow-sm font-medium"
+          :disabled="isLoading || otpCode.length < 6"
+          class="bg-green-500 text-white px-8 py-2 rounded w-40 hover:bg-green-600 transition shadow-sm font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          Submit
+          {{ isLoading ? 'Checking...' : 'Submit' }}
         </button>
         
         <button 
           type="button" 
           @click="$router.back()" 
+          :disabled="isLoading"
           class="bg-red-500 text-white px-8 py-2 rounded w-40 hover:bg-red-600 transition shadow-sm font-medium"
         >
-          Cancel
+          Back
         </button>
       </div>
     </form>
@@ -42,31 +49,79 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { authService } from '../../services/authService'
 
 const router = useRouter()
+const route = useRoute()
 
-// สร้างตัวแปรเก็บค่า
 const otpCode = ref('')
 const isError = ref(false)
+const errorMessage = ref('')
+const isLoading = ref(false)
 
-// 🔒 กำหนดรหัส 2FA ที่ถูกต้อง (Mock Data) สำหรับทดสอบ
-// ในอนาคตค่อยเปลี่ยนตรงนี้เป็นการยิง API ไปหา Server
-const CORRECT_OTP = '123456'
+const email = route.query.email
 
-const handleSubmit = () => {
-  // 1. รีเซ็ต Error ก่อนเริ่มเช็ค
+// ฟังก์ชันกรองตัวเลข 
+const handleInput = (e) => {
   isError.value = false
+  // กรองเอาเฉพาะตัวเลข 0-9
+  let value = e.target.value.replace(/[^0-9]/g, '')
+  if (value.length > 6) value = value.slice(0, 6)
+  otpCode.value = value
+}
 
-  // 2. เช็คว่ารหัสที่กรอก (otpCode) ตรงกับ รหัสที่ถูกต้อง (CORRECT_OTP) หรือไม่
-  if (otpCode.value === CORRECT_OTP) {
-    // ✅ ถ้าถูก: ไปหน้าถัดไป (เสร็จสิ้น)
-    console.log("2FA Success")
-    router.push('/setup/2fa-complete')
-  } else {
-    // ❌ ถ้าผิด: แสดง Error Message
-    console.log("2FA Failed")
+const handleSubmit = async () => {
+  isError.value = false
+  errorMessage.value = ''
+
+  if (!otpCode.value) return
+  if (!email) {
+      errorMessage.value = "ไม่พบข้อมูล Email (กรุณาเริ่มใหม่)"
+      return
+  }
+
+  isLoading.value = true
+
+  try {
+    console.log(`Verifying OTP for ${email}...`)
+    const response = await authService.verify2FA(email, otpCode.value)
+
+    console.log("2FA Success! Response:", response.data)
+
+    // 2. รับ Token และบันทึก
+    const token = response.data.accessToken || response.data.token || response.data.data?.accessToken
+
+    if (token) {
+        localStorage.setItem('token', token)
+        console.log("Token saved to LocalStorage!")
+        router.push('/install/two-factor-complete') 
+    } else {
+        throw new Error("ยืนยันตัวตนผ่าน แต่ไม่ได้รับ Token จาก Server")
+    }
+
+  } catch (error) {
+    console.error("2FA Failed:", error)
     isError.value = true
+    
+    if (error.response) {
+        // ถ้าเป็น 400 ให้ฟันธงเลยว่าใส่รหัสผิด
+        if (error.response.status === 400) {
+            errorMessage.value = "รหัส OTP ไม่ถูกต้อง"
+        } 
+        // ถ้า Backend ส่งข้อความ Error มา (เช่น Token หมดอายุ)
+        else if (error.response.data && error.response.data.message) {
+            errorMessage.value = error.response.data.message
+        } 
+        else {
+            errorMessage.value = `เกิดข้อผิดพลาด (${error.response.status})`
+        }
+    } else {
+        // กรณีต่อเน็ตไม่ได้ หรือ Server ล่ม
+        errorMessage.value = 'ไม่สามารถเชื่อมต่อ Server ได้'
+    }
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
