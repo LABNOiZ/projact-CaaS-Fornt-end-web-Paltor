@@ -1,58 +1,77 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-// Layouts
-import AuthLayout from '../layouts/AuthLayout.vue'
-import AdminLayout from '../layouts/AdminLayout.vue' 
+// 1. Import Layouts
+import AuthLayout from '@/layouts/AuthLayout.vue'
+import AdminLayout from '@/layouts/AdminLayout.vue' 
+import CallCenterLayout from '@/layouts/CallCenterLayout.vue' 
 
-// Views (Auth)
-import LoginView from '../views/auth/LoginView.vue'
-import LoginTwoFactor from '../views/auth/LoginTwoFactor.vue' 
+// 2. Import Views (Auth & Install)
+import LoginView from '@/views/auth/LoginView.vue'
+import LoginTwoFactor from '@/views/auth/LoginTwoFactor.vue' 
+import CreateAdmin from '@/views/install/CreateAdmin.vue'
+import LoadingStep from '@/views/install/LoadingStep.vue'
+import InstallSuccess from '@/views/install/InstallSuccess.vue'
+import TwoFactorIntro from '@/views/install/TwoFactorIntro.vue'
+import TwoFactorQR from '@/views/install/TwoFactorQR.vue'
+import TwoFactorVerify from '@/views/install/TwoFactorVerify.vue'
+import TwoFactorComplete from '@/views/install/TwoFactorComplete.vue'
 
-// Views (Install)
-import CreateAdmin from '../views/install/CreateAdmin.vue'
-import LoadingStep from '../views/install/LoadingStep.vue'
-import InstallSuccess from '../views/install/InstallSuccess.vue'
-import TwoFactorIntro from '../views/install/TwoFactorIntro.vue'
-import TwoFactorQR from '../views/install/TwoFactorQR.vue'
-import TwoFactorVerify from '../views/install/TwoFactorVerify.vue'
-import TwoFactorComplete from '../views/install/TwoFactorComplete.vue'
+// 3. Import Views (Admin Dashboard & History)
+import Dashboard from '@/views/admin/Dashboard.vue'
+import WebUsers from '@/views/admin/WebUsers.vue' 
+import AdminHistory from '@/views/admin/AdminHistory.vue'
+import SettingsProfile from '@/views/admin/settings/SettingsProfile.vue'
+import SettingsPassword from '@/views/admin/settings/SettingsPassword.vue'
+import SettingsTwoFactor from '@/views/admin/settings/SettingsTwoFactor.vue'
 
-// Views (Admin)
-import Dashboard from '../views/admin/Dashboard.vue'
-import WebUsers from '../views/admin/WebUsers.vue' 
+// 4. Import Views (Call Center)
+import SearchCustomer from '@/views/callcenter/SearchCustomer.vue'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    // 1. กลุ่ม Auth (Login, Setup)
+
+    // Auth & Installation
     {
       path: '/',
       component: AuthLayout,
       children: [
-        { path: '', redirect: '/login' }, 
-        { path: 'login', component: LoginView },
-        { path: 'login-2fa', component: LoginTwoFactor }, 
+        { path: '', redirect: '/call-center/search-customer' }, 
+        { path: 'login', name: 'Login', component: LoginView },
+        { path: 'login-2fa', name: 'LoginTwoFactor', component: LoginTwoFactor }, 
         
-        // --- 🟢 Install Flow ---
-        { path: 'install/create-admin', component: CreateAdmin },
-        { path: 'install/loading', component: LoadingStep },
-        { path: 'install/success', component: InstallSuccess },
-        
-        // --- 🔵 2FA Setup Flow (ใช้ชื่อ path แบบมีขีดกลาง - ให้เหมือนกันหมด) ---
-        { path: 'install/two-factor-intro', component: TwoFactorIntro },
-        { path: 'install/two-factor-qr', component: TwoFactorQR },
-        { path: 'install/two-factor-verify', component: TwoFactorVerify },
-        { path: 'install/two-factor-complete', component: TwoFactorComplete },
+        { path: 'install/create-admin', name: 'CreateAdmin', component: CreateAdmin },
+        { path: 'install/loading', name: 'LoadingStep', component: LoadingStep },
+        { path: 'install/success', name: 'InstallSuccess', component: InstallSuccess },
+        { path: 'install/two-factor-intro', name: 'TwoFactorIntro', component: TwoFactorIntro },
+        { path: 'install/two-factor-qr', name: 'TwoFactorQR', component: TwoFactorQR },
+        { path: 'install/two-factor-verify', name: 'TwoFactorVerify', component: TwoFactorVerify },
+        { path: 'install/two-factor-complete', name: 'TwoFactorComplete', component: TwoFactorComplete },
       ]
     },
 
-    // 2. กลุ่ม Admin
     {
       path: '/admin',
       component: AdminLayout,
       children: [
-        { path: 'dashboard', component: Dashboard },
-        { path: 'web-users', component: WebUsers } 
+        { path: 'dashboard', name: 'AdminDashboard', component: Dashboard },
+        { path: 'web-users', name: 'WebUsers', component: WebUsers },
+        { path: 'admin-history', name: 'AdminHistory', component: AdminHistory },
+        { path: 'settings/profile', name: 'SettingsProfile', component: SettingsProfile },
+        { path: 'settings/password', name: 'SettingsPassword', component: SettingsPassword },
+        { path: 'settings/2fa', name: 'SettingsTwoFactor', component: SettingsTwoFactor },
+      ]
+    },
+
+    {
+      path: '/call-center',
+      component: CallCenterLayout,
+      meta: { requiresAuth: true, role: 'Call Center' },
+      redirect: '/call-center/search',
+      children: [
+        { 
+          path: 'search-customer', name: 'CallCenterSearch', component: SearchCustomer
+        },
       ]
     }
   ]

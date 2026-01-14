@@ -36,5 +36,12 @@ export const authService = {
         email: email,
         code: code.toString() // แปลงเป็น String ตาม JSON 
     })
+  },
+
+  // 6. เปลี่ยนรหัสผ่าน (Change Password)
+  changePassword(data) {
+    // data = { oldPassword: '...', newPassword: '...' }
+    return api.post('/web/users/change-password', data)
   }
+
 }

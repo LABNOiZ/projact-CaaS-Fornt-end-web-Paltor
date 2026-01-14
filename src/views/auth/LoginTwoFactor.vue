@@ -49,7 +49,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { authService } from '../../services/authService' 
+import { authService } from '@/services/authService' 
 
 const router = useRouter()
 const route = useRoute()
@@ -66,8 +66,8 @@ const handleInput = (e) => {
   isError.value = false
   errorMessage.value = ''
   
-  // 🔥 แก้ไขจุดที่ 2: กรองให้พิมพ์ได้แค่ตัวเลข 0-9 เท่านั้น
-  // เพราะ input type="text" รับตัวอักษรได้ เราจึงต้องเขียนดักไว้
+  // กรองให้พิมพ์ได้แค่ตัวเลข 0-9 เท่านั้น
+  // เพราะ input type="text" รับตัวอักษรได้ จึงต้องเขียนดักไว้
   let value = e.target.value.replace(/[^0-9]/g, '')
 
   // จำกัดความยาวไม่เกิน 6 ตัว
@@ -95,12 +95,12 @@ const handleVerify = async () => {
   isError.value = false
 
   try {
-    console.log(`🚀 Verifying 2FA for ${email}`)
+    console.log(`Verifying 2FA for ${email}`)
     
     // ยิง API ไปตรวจสอบความถูกต้อง
     const response = await authService.verifyLogin2FA(email, otpCode.value)
     
-    console.log("✅ Verify Success:", response.data)
+    console.log("Verify Success:", response.data)
 
     // รับ Token แล้วบันทึก
     const token = response.data.token || response.data.accessToken
@@ -112,7 +112,7 @@ const handleVerify = async () => {
     }
 
   } catch (error) {
-    console.error("❌ Verify Error:", error)
+    console.error("Verify Error:", error)
     isError.value = true
     if (error.response && error.response.data) {
         errorMessage.value = error.response.data.message || 'รหัสผ่านไม่ถูกต้อง'

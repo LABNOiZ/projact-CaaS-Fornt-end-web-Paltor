@@ -57,17 +57,9 @@
         <tbody class="divide-y divide-gray-100">
           <tr v-for="(user, index) in users" :key="user.id || index" class="hover:bg-gray-50 transition">
             
-            <td class="p-4 font-bold text-gray-900">
-              {{ user.name }}
-            </td>
-            
-            <td class="p-4 text-gray-600">
-               {{ user.nameTh || '-' }}
-            </td>
-            
-            <td class="p-4 text-gray-600">
-              {{ user.email }}
-            </td>
+            <td class="p-4 font-bold text-gray-900">{{ user.name }}</td>
+            <td class="p-4 text-gray-600">{{ user.nameTh || '-' }}</td>
+            <td class="p-4 text-gray-600">{{ user.email }}</td>
             
             <td class="p-4 whitespace-nowrap">
               <span class="px-2 py-1 rounded bg-gray-100 border border-gray-300 text-xs font-bold">
@@ -76,6 +68,7 @@
             </td>
             
             <td class="p-4 text-center">{{ user.branchNumber || '-' }}</td>
+            
             <td class="p-4">
               <span 
                 :class="user.status === 'Active' ? 'text-green-600' : 'text-red-500'" 
@@ -85,9 +78,10 @@
                 {{ user.status }}
               </span>
             </td>
-            <td class="p-4 text-gray-500">{{ user.lastLogin }}</td>
-            <td class="p-4 text-gray-500">{{ user.createdBy }}</td>
-            <td class="p-4 text-gray-500">{{ user.createdAt }}</td>
+
+            <td class="p-4 text-gray-500">{{ user.createdBy || '-' }}</td>
+            
+            <td class="p-4 text-gray-500">{{ user.createdAt || '-' }}</td>
             
             <td class="p-4 text-center flex justify-center gap-3">
               <button 
@@ -197,7 +191,7 @@
               <label class="block text-sm font-bold mb-1">Role</label>
               <select v-model="form.roleId" class="w-full border p-2 rounded bg-gray-50 border-black" required>
                 <option value="" disabled>เลือก role</option>
-                <option v-for="role in roleOptions" :key="role.value" :value="role.value">
+                <option v-for="role in displayedRoleOptions" :key="role.value" :value="role.value">
                   {{ role.label }}
                 </option>
               </select>
@@ -304,8 +298,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import PasswordInput from '../../components/PasswordInput.vue'
-import PasswordRules from '../../components/PasswordRules.vue'
+import PasswordInput from '@/components/PasswordInput.vue'
+import PasswordRules from '@/components/PasswordRules.vue'
 import { 
   getWebUsers, 
   searchWebUsers, 
@@ -314,7 +308,8 @@ import {
   deleteWebUser 
 } from '@/services/adminService'
 
-const roleOptions = [
+// Role Master Data (เก็บไว้ใช้อ้างอิงชื่อ)
+const masterRoleOptions = [
   { label: 'Admin', value: 2 },  
   { label: 'Call Center', value: 4 }, 
   { label: 'Branch Manager', value: 3 } 
@@ -345,13 +340,21 @@ const form = ref({
   branchNumber: ''
 })
 
+// Logic: Role Options ที่จะแสดงใน Dropdown (ถ้าแก้ไข จะไม่ให้เลือก Admin)
+const displayedRoleOptions = computed(() => {
+  if (isEditMode.value) {
+    return masterRoleOptions.filter(role => role.value !== 2)
+  }
+  return masterRoleOptions
+})
+
 const getRoleName = (id) => {
-  const found = roleOptions.find(r => r.value === id)
+  const found = masterRoleOptions.find(r => r.value === id)
   return found ? found.label : 'Unknown'
 }
 
 const isBranchManagerSelected = computed(() => {
-  return form.value.roleId === 3 // Branch Manager ID = 3
+  return form.value.roleId === 3 
 })
 
 const fetchUsers = async () => {
@@ -531,6 +534,15 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.animate-fade-in-down {
+  animation: fadeInDown 0.3s ease-out;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .animate-bounce-in {
   animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }

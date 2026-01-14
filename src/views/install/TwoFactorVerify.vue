@@ -50,7 +50,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { authService } from '../../services/authService'
+import { authService } from '@/services/authService'
 
 const router = useRouter()
 const route = useRoute()
@@ -62,10 +62,9 @@ const isLoading = ref(false)
 
 const email = route.query.email
 
-// ฟังก์ชันกรองตัวเลข 
+// ฟังก์ชันกรองตัวเลข
 const handleInput = (e) => {
   isError.value = false
-  // กรองเอาเฉพาะตัวเลข 0-9
   let value = e.target.value.replace(/[^0-9]/g, '')
   if (value.length > 6) value = value.slice(0, 6)
   otpCode.value = value
@@ -89,13 +88,26 @@ const handleSubmit = async () => {
 
     console.log("2FA Success! Response:", response.data)
 
-    // 2. รับ Token และบันทึก
+    // รับ Token และบันทึก
     const token = response.data.accessToken || response.data.token || response.data.data?.accessToken
 
     if (token) {
         localStorage.setItem('token', token)
         console.log("Token saved to LocalStorage!")
-        router.push('/install/two-factor-complete') 
+        
+        //  เช็คว่ามาจากไหน (Settings หรือ Install ใหม่) 
+        const origin = localStorage.getItem('setupOrigin')
+        
+        if (origin === 'settings') {
+            // ถ้ามาจาก Settings ให้กลับไปที่หน้า Settings
+            console.log("Redirecting back to Settings...")
+            localStorage.removeItem('setupOrigin') // ลบป้ายทิ้ง
+            router.push({ name: 'SettingsTwoFactor' }) // หรือ '/admin/settings/2fa'
+        } else {
+            // ถ้าเป็น Flow ปกติ (Admin ใหม่) ให้ไปหน้า Complete
+            router.push('/install/two-factor-complete') 
+        }
+
     } else {
         throw new Error("ยืนยันตัวตนผ่าน แต่ไม่ได้รับ Token จาก Server")
     }
@@ -105,19 +117,14 @@ const handleSubmit = async () => {
     isError.value = true
     
     if (error.response) {
-        // ถ้าเป็น 400 ให้ฟันธงเลยว่าใส่รหัสผิด
         if (error.response.status === 400) {
             errorMessage.value = "รหัส OTP ไม่ถูกต้อง"
-        } 
-        // ถ้า Backend ส่งข้อความ Error มา (เช่น Token หมดอายุ)
-        else if (error.response.data && error.response.data.message) {
+        } else if (error.response.data && error.response.data.message) {
             errorMessage.value = error.response.data.message
-        } 
-        else {
+        } else {
             errorMessage.value = `เกิดข้อผิดพลาด (${error.response.status})`
         }
     } else {
-        // กรณีต่อเน็ตไม่ได้ หรือ Server ล่ม
         errorMessage.value = 'ไม่สามารถเชื่อมต่อ Server ได้'
     }
   } finally {

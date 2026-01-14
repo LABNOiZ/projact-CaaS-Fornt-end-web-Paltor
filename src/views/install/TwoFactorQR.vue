@@ -29,7 +29,7 @@
            <span class="text-xs">กำลังโหลด...</span>
         </div>
 
-        <div v-else class="flex flex-col items-center justify-center w-40 h-40 text-red-500">
+        <div v-else class="flex flex-col items-center justify-center w-40 h-40 text-red-500 p-2">
            <span class="text-xs mb-2">{{ errorMessage || 'ไม่สามารถสร้าง QR Code ได้' }}</span>
            <button @click="fetchQRCode" class="text-xs underline text-blue-500 hover:text-blue-700">ลองใหม่</button>
         </div>
@@ -50,73 +50,83 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios' 
 import QrcodeVue from 'qrcode.vue' 
+// ✅ เรียกใช้ API มาตรฐาน และ Service ดึงโปรไฟล์
+import api from '@/services/api'
+import { getUserProfile } from '@/services/adminService'
 
 const route = useRoute()
 const router = useRouter()
 
-const email = route.query.email 
+// ตัวแปร state
 const otpAuthUrl = ref('')      
 const fallbackQrUrl = ref('')   
 const isLoading = ref(false)
 const errorMessage = ref('')
+// เก็บ email ไว้ใน ref เพื่อให้เปลี่ยนค่าได้
+const currentEmail = ref(route.query.email || localStorage.getItem('email') || '')
 
 const fetchQRCode = async () => {
-    // ตรวจสอบ Email
-    if (!email) {
-        errorMessage.value = "ไม่พบ Email (ระบบผิดพลาด)"
-        return
-    }
-    
     isLoading.value = true
     errorMessage.value = ''
     otpAuthUrl.value = ''
     fallbackQrUrl.value = ''
     
     try {
-        console.log(" Fetching QR for:", email)
+        // 🛡️ 1. ถ้าไม่มี Email ให้ลองดึงจาก Profile ตัวเองก่อน (Auto Recovery)
+        if (!currentEmail.value) {
+            console.log("Email missing, trying to fetch profile...")
+            try {
+                const profileRes = await getUserProfile() // เรียก API /web/users/profile
+                currentEmail.value = profileRes.data.email
+                // บันทึกกันเหนียว
+                localStorage.setItem('email', currentEmail.value)
+            } catch (err) {
+                console.warn("Cannot fetch profile", err)
+                // ถ้าดึงไม่ได้จริงๆ ค่อยยอมแพ้
+                throw new Error("ไม่พบข้อมูล Email (กรุณา Login ใหม่)")
+            }
+        }
 
-        // สร้าง Axios Instanceใหม่เพื่อล้าง Token เก่าทิ้ง
-        const cleanAxios = axios.create();
-        delete cleanAxios.defaults.headers.common['Authorization']; 
+        console.log("Fetching QR for:", currentEmail.value)
 
-        
-        // ส่ง email ไปทั้งใน Body และ Query Params เพื่อความชัวร์
-        const response = await cleanAxios.post('/api/v1/web/auth/setup-2fa', 
-            { email: email }, 
-            { params: { email: email } }
+        // 🛡️ 2. ยิง API ขอ QR Code
+        // ใช้ api ตัวปกติที่มี Token แปะไปด้วย (เพราะเรา Login อยู่)
+        const response = await api.post('/web/auth/setup-2fa', 
+            { email: currentEmail.value },
+            { params: { email: currentEmail.value } } // บางที backend รับทาง param
         )
         
         const data = response.data
-        console.log(" Server Response:", data)
-
         const secretKey = data.secretKey 
         const rawImageUrl = data.qrCodeUrl
 
+        // 3. แปลงผลลัพธ์เป็นรูปภาพ
         if (secretKey) {
-            // สร้าง QR จาก Secret Key
             const appName = 'NovaPay'
-            const label = `${appName}:${email}`
+            const label = `${appName}:${currentEmail.value}`
             otpAuthUrl.value = `otpauth://totp/${label}?secret=${secretKey}&issuer=${appName}`
+            // เก็บ Secret ไว้เผื่อหน้าถัดไปใช้
+            localStorage.setItem('tempSecret', secretKey)
         } 
         else if (rawImageUrl) {
-            // ใช้รูปจาก Server 
             const cleanBase64 = rawImageUrl.replace(/\s/g, '')
             fallbackQrUrl.value = cleanBase64.startsWith('data:image') 
                 ? cleanBase64 
                 : `data:image/png;base64,${cleanBase64}`
         } 
         else {
-            errorMessage.value = 'เซิร์ฟเวอร์ไม่ส่งข้อมูล QR Code กลับมา'
+            throw new Error('Server ไม่ส่งข้อมูล QR กลับมา')
         }
 
     } catch (error) {
         console.error("QR Code Error:", error)
         if (error.response && error.response.status === 403) {
-             errorMessage.value = 'ติดสิทธิ์ 403: (ตรวจสอบ Method POST หรือสิทธิ์การเข้าถึง)'
+             errorMessage.value = 'ติดสิทธิ์ 403 Forbidden'
+        } else if (error.message) {
+             errorMessage.value = error.message
         } else {
-             errorMessage.value = error.response?.data?.message || 'โหลด QR Code ไม่สำเร็จ'
+             errorMessage.value = 'เกิดข้อผิดพลาดในการเชื่อมต่อ'
         }
     } finally {
         isLoading.value = false
@@ -124,9 +134,10 @@ const fetchQRCode = async () => {
 }
 
 const goToNextStep = () => {
+    // ส่ง Email ต่อไปหน้ายืนยัน
     router.push({ 
         path: '/install/two-factor-verify', 
-        query: { email: email } 
+        query: { email: currentEmail.value } 
     })
 }
 

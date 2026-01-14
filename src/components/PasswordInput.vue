@@ -6,7 +6,6 @@
     </label>
 
     <div class="relative">
-      <!-- input password -->
       <input
         :type="showPassword ? 'text' : 'password'"
         :value="modelValue"
@@ -17,7 +16,6 @@
                pr-10"
       />
 
-      <!-- toggle password button -->
       <button
         type="button"
         @click="togglePassword"
@@ -25,13 +23,11 @@
                text-gray-800 hover:text-blue-600
                focus:outline-none"
       >
-        <!-- ซ่อนรหัส -->
         <EyeSlashIcon
           v-if="showPassword"
           class="w-5 h-5"
         />
 
-        <!-- แสดงรหัส -->
         <EyeIcon
           v-else
           class="w-5 h-5"

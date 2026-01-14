@@ -45,17 +45,7 @@
           <div class="text-3xl font-bold mt-2">{{ stats.approvedRequests }} <span class="text-sm font-normal">รายการ</span></div>
           <div class="text-[10px] opacity-80 mt-2">อัปเดต: {{ currentDate }} {{ currentTime }}</div>
        </div>
-       
-       <div class="hidden md:block"></div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
-            <h4 class="font-bold mb-2 text-sm text-gray-700">สถิติผู้ใช้งานใหม่รายเดือน Mobile</h4>
-            <div class="h-56">
-                <Bar :data="chartData" :options="chartOptions" />
-            </div>
-        </div>
+      <div class="hidden md:block"></div>
     </div>
   </div>
 </template>
@@ -63,12 +53,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getAdminDashboardStats } from '@/services/adminService'
-
-// Import Chart Components
-import { Bar } from 'vue-chartjs'
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement } from 'chart.js'
-
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement)
 
 // จัดการเรื่องวันเวลา
 const currentDate = new Date().toLocaleDateString('th-TH')
@@ -105,15 +89,6 @@ const fetchDashboardData = async () => {
 onMounted(() => {
   fetchDashboardData()
 })
-
-const chartData = {
-  labels: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.'],
-  datasets: [{
-    label: 'ผู้ใช้งานใหม่ (Mobile)',
-    backgroundColor: '#3b82f6',
-    data: [40, 20, 10, 40, 10, 80]
-  }]
-}
 
 const chartOptions = {
   responsive: true,

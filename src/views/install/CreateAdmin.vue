@@ -96,10 +96,10 @@
 <script setup>
 import { ref, computed } from 'vue' 
 import { useRouter } from 'vue-router'
-import PasswordInput from '../../components/PasswordInput.vue'
-import PasswordRules from '../../components/PasswordRules.vue' 
-import FormAlert from '../../components/FormAlert.vue'
-import { authService } from '../../services/authService'
+import PasswordInput from '@/components/PasswordInput.vue'
+import PasswordRules from '@/components/PasswordRules.vue' 
+import FormAlert from '@/components/FormAlert.vue'
+import { authService } from '@/services/authService'
 
 const router = useRouter()
 
@@ -153,7 +153,7 @@ const handleRegister = async () => {
         roleId: 2 
     }
 
-    console.log("🚀  Sending Payload:", payload)
+    console.log("  Sending Payload:", payload)
 
     // ยิง API Register
     await authService.register(payload)

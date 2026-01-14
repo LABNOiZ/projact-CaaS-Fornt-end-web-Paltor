@@ -32,10 +32,9 @@ const props = defineProps({
   }
 })
 
-// ส่งค่ากลับไปบอกพ่อแม่ว่า "ผ่าน" หรือ "ไม่ผ่าน"
+// ส่งค่ากลับไปบอกว่า "ผ่าน" หรือ "ไม่ผ่าน"
 const emit = defineEmits(['check-valid'])
 
-// Logic การตรวจสอบ
 const validation = computed(() => {
   const p = props.password
   return {

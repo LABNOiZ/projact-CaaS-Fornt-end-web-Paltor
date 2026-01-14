@@ -46,8 +46,8 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import PasswordInput from '../../components/PasswordInput.vue'
-import { authService } from '../../services/authService'
+import PasswordInput from '@/components/PasswordInput.vue'
+import { authService } from '@/services/authService'
 
 const router = useRouter()
 

@@ -1,6 +1,6 @@
 import api from './api' // ตัวนี้คือ axios instance ที่ config base url ไว้แล้ว
 
-// --- Dashboard (ของเดิม) ---
+// Dashboard 
 export const getAdminDashboardStats = () => {
   return api.get('/web/dashboard/stats')
 }
@@ -30,4 +30,16 @@ export const deleteWebUser = (userId) => {
 // สร้างผู้ใช้ใหม่ 
 export const createWebUser = (data) => {
   return api.post('/web/users/add', data)
+}
+
+// ดึงข้อมูลโปรไฟล์ผู้ใช้
+export const getUserProfile = () => {
+  return api.get('/web/users/profile')
+}
+
+export const resetTwoFactor = (targetEmail, password) => {
+  return api.post('/web/users/reset-2fa', {
+    targetEmail: targetEmail,
+    password: password
+  })
 }
