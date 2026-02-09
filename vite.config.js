@@ -1,21 +1,27 @@
+import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import path from 'path' // เพื่อให้ใช้งาน path ได้
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
-  resolve: { //ส่วนนี้ เพื่อบอกว่า @ คือ src
+  resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    }
   },
   server: {
     proxy: {
-      // เมื่อไหร่ที่ axios ยิงไปที่ /api
       '/api': {
-        target: 'http://10.82.241.238:8086', // ให้ส่งต่อไปที่ Server นี้แทน
+        target: 'http://10.82.241.238:8086', // IP Backend
         changeOrigin: true,
         secure: false,
+        // ✅ เพิ่มส่วนนี้: เพื่อหลอก Server ว่า Request นี้มาจากบ้านมันเอง
+        configure: (proxy, _options) => {
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            proxyReq.setHeader('Origin', 'http://10.82.241.238:8086'); 
+          });
+        }
       }
     }
   }

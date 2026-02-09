@@ -1,294 +1,320 @@
 <template>
-  <div class="font-sans">
-    <h2 class="text-xl font-bold mb-6 text-black">User Access Management</h2>
+  <div class="h-full flex flex-col overflow-hidden bg-gray-50 px-4 pt-3 font-sans">
 
-    <div class="bg-blue-100 p-6 rounded-lg mb-6 flex justify-between items-center shadow-sm">
-      <div class="flex items-center gap-4 w-2/3">
-        <div class="font-bold text-gray-700">ค้นหาชื่อผู้ใช้</div>
-        <div class="relative flex-1">
-          <input 
-            v-model="searchInput" 
-            @keyup.enter="handleSearch"
-            type="text" 
-            placeholder="พิมพ์ชื่อเพื่อค้นหา..."
-            class="w-full p-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pl-10"
-          />
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-400 absolute left-3 top-2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
+    <div class="flex-none mb-3 flex items-center gap-2">
+        <div class="bg-blue-100 p-1.5 rounded-lg">
+            <UserCircleIcon class="w-5 h-5 text-blue-600" />
         </div>
-        <button 
-          @click="handleSearch"
-          class="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition font-bold flex items-center gap-2"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
-          ค้นหา
-        </button>
-      </div>
-
-      <button 
-        @click="openAddModal" 
-        class="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition flex items-center gap-2 font-bold shadow-md"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        Add User
-      </button>
+        <h2 class="text-lg font-extrabold text-gray-800 tracking-tight leading-none">จัดการผู้ใช้งาน (User Access Management)</h2>
     </div>
 
-    <div class="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
-      <table class="w-full text-left text-sm">
-        <thead class="bg-gray-300 text-gray-700 font-bold uppercase">
-          <tr>
-            <th class="p-4">Name (EN)</th>
-            <th class="p-4">Name (TH)</th>
-            <th class="p-4">Email</th>
-            <th class="p-4">Role</th>
-            <th class="p-4 text-center">Branch</th>
-            <th class="p-4">Status</th>
-            <th class="p-4">Created By</th>
-            <th class="p-4">Created At</th>
-            <th class="p-4 text-center">Action</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-          <tr v-for="(user, index) in users" :key="user.id || index" class="hover:bg-gray-50 transition">
+    <div class="flex-none bg-white p-3 rounded-xl shadow-sm border border-gray-200 mb-3">
+        <div class="flex flex-col gap-3">
             
-            <td class="p-4 font-bold text-gray-900">{{ user.name }}</td>
-            <td class="p-4 text-gray-600">{{ user.nameTh || '-' }}</td>
-            <td class="p-4 text-gray-600">{{ user.email }}</td>
-            
-            <td class="p-4 whitespace-nowrap">
-              <span class="px-2 py-1 rounded bg-gray-100 border border-gray-300 text-xs font-bold">
-                {{ user.role }}
-              </span>
-            </td>
-            
-            <td class="p-4 text-center">{{ user.branchNumber || '-' }}</td>
-            
-            <td class="p-4">
-              <span 
-                :class="user.status === 'Active' ? 'text-green-600' : 'text-red-500'" 
-                class="font-bold flex items-center gap-1"
-              >
-                <span class="w-2 h-2 rounded-full" :class="user.status === 'Active' ? 'bg-green-600' : 'bg-red-500'"></span>
-                {{ user.status }}
-              </span>
-            </td>
+            <div class="flex items-center justify-between">
+                
+                <div class="flex items-center gap-2">
+                    <div class="relative w-[280px]">
+                        <MagnifyingGlassIcon class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input 
+                            v-model="searchInput" 
+                            @keyup.enter="handleSearch"
+                            type="text" 
+                            placeholder="พิมพ์ชื่อ-นามสกุล (ไทย)..."
+                            class="w-full pl-9 pr-3 py-1.5 text-xs bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white transition h-[36px]"
+                        />
+                    </div>
+                    
+                    <button 
+                        @click="handleSearch"
+                        :disabled="isLoading"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition-all active:scale-95 h-[36px] text-xs disabled:opacity-50 min-w-[70px] justify-center"
+                    >
+                        <span v-if="!isLoading">ค้นหา</span>
+                        <span v-else>ค้นหา</span>
+                    </button>
+                </div>
 
-            <td class="p-4 text-gray-500">{{ user.createdBy || '-' }}</td>
-            
-            <td class="p-4 text-gray-500">{{ user.createdAt || '-' }}</td>
-            
-            <td class="p-4 text-center flex justify-center gap-3">
-              <button 
-                @click="openEditModal(user)" 
-                :disabled="user.roleId === 2 || user.status === 'Suspended'"
-                :class="(user.roleId === 2 || user.status === 'Suspended') ? 'text-gray-300 cursor-not-allowed' : 'text-blue-500 hover:text-blue-700'"
-                title="แก้ไขข้อมูล"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                </svg>
-              </button>
-              
-              <button 
-                @click="confirmSuspend(user)" 
-                :disabled="user.roleId === 2"
-                :class="user.roleId === 2 ? 'text-gray-300 cursor-not-allowed' : 'text-blue-500 hover:text-red-500'"
-                title="ระงับบัญชี"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                </svg>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      
-      <div v-if="users.length === 0" class="p-8 text-center text-gray-500 flex flex-col items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-gray-300">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3.25h3m-6 0h6m-12 0h6m-6 0v6.75m0-6.75A2.25 2.25 0 0013.5 15h3a2.25 2.25 0 002.25-2.25V10.75m-15.75 0V7.5a2.25 2.25 0 012.25-2.25h13.5a2.25 2.25 0 012.25 2.25v3.25" />
-        </svg>
-        <span>ไม่พบข้อมูลผู้ใช้งาน</span>
-      </div>
+                <button 
+                    @click="openAddModal" 
+                    class="bg-green-600 hover:bg-green-700 text-white px-5 py-1.5 rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition-all active:scale-95 h-[36px] text-xs whitespace-nowrap"
+                >
+                    <PlusIcon class="w-4 h-4" /> Add User
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2 overflow-x-auto pb-1">
+                <span class="text-[10px] font-bold text-gray-500 mr-1 flex items-center gap-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-gray-400"></div> กรอง Role:
+                </span>
+                <div class="flex gap-1">
+                    <button @click="currentRoleFilter = 'ALL'" :class="currentRoleFilter === 'ALL' ? 'bg-gray-800 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'" class="px-3 py-1 rounded-md text-[10px] font-bold transition-all">ทั้งหมด</button>
+                    <button @click="currentRoleFilter = 2" :class="currentRoleFilter === 2 ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:text-blue-600 hover:border-blue-200'" class="px-3 py-1 rounded-md text-[10px] font-bold transition-all">Admin</button>
+                    <button @click="currentRoleFilter = 4" :class="currentRoleFilter === 4 ? 'bg-pink-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:text-pink-600 hover:border-pink-200'" class="px-3 py-1 rounded-md text-[10px] font-bold transition-all">Call Center</button>
+                    <button @click="currentRoleFilter = 3" :class="currentRoleFilter === 3 ? 'bg-purple-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:text-purple-600 hover:border-purple-200'" class="px-3 py-1 rounded-md text-[10px] font-bold transition-all whitespace-nowrap">Manager</button>
+                </div>
+            </div>
+
+        </div>
     </div>
 
-    <div v-if="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-blue-50 p-1 rounded-xl shadow-2xl w-full max-w-lg border-4 border-blue-400 max-h-[90vh] overflow-y-auto">
-        <div class="bg-white rounded-lg p-6">
-          <div class="flex justify-between items-center mb-4">
-             <h3 class="font-bold text-lg">{{ isEditMode ? 'Edit User' : 'Add New User' }}</h3>
-             <button @click="closeModal" class="text-gray-400 hover:text-gray-600">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-             </button>
-          </div>
-          
-          <form @submit.prevent="handleSubmit" class="space-y-4">
+    <div class="flex-1 min-h-0 bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col overflow-hidden relative mb-2">
+        
+        <div class="flex-none px-4 py-2 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <h3 class="font-bold text-xs text-gray-700 uppercase tracking-wide">
+               รายชื่อผู้ใช้งาน
+            </h3>
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse" v-if="filteredUsers.length > 0"></span>
+                <span class="text-[10px] text-gray-500">
+                   พบ <span class="font-bold text-blue-600">{{ filteredUsers.length }}</span> บัญชี
+                </span>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent relative">
+            <table class="w-full text-left border-collapse table-fixed"> 
+                <thead class="bg-white text-gray-500 font-semibold uppercase tracking-wider text-[10px] sticky top-0 z-10 shadow-sm">
+                    <tr>
+                        <th class="px-4 py-2.5 w-[20%] bg-gray-50/95 backdrop-blur-sm border-b border-gray-100">ชื่อ-นามสกุล</th>
+                        <th class="px-4 py-2.5 w-[20%] bg-gray-50/95 backdrop-blur-sm border-b border-gray-100">Email</th>
+                        <th class="px-4 py-2.5 w-[10%] bg-gray-50/95 backdrop-blur-sm border-b border-gray-100">Role</th>
+                        <th class="px-4 py-2.5 w-[8%] bg-gray-50/95 backdrop-blur-sm border-b border-gray-100 text-center">Branch</th>
+                        <th class="px-4 py-2.5 w-[8%] bg-gray-50/95 backdrop-blur-sm border-b border-gray-100 text-center">Status</th>
+                        <th class="px-4 py-2.5 w-[15%] bg-gray-50/95 backdrop-blur-sm border-b border-gray-100">Created By</th>
+                        <th class="px-4 py-2.5 w-[12%] bg-gray-50/95 backdrop-blur-sm border-b border-gray-100">Date</th>
+                        <th class="px-4 py-2.5 w-[9%] bg-gray-50/95 backdrop-blur-sm border-b border-gray-100 text-right pr-6">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    <tr v-for="(user, index) in filteredUsers" :key="user.id || index" class="hover:bg-blue-50/30 transition duration-150 group">
+                        
+                        <td class="px-4 py-2.5 align-middle truncate">
+                            <div class="flex items-center gap-2">
+                                <div class="bg-gray-100 p-1 rounded-full shrink-0">
+                                    <UserCircleIcon class="w-6 h-6 text-gray-400" />
+                                </div>
+                                <div class="flex flex-col min-w-0"> 
+                                    <span class="font-bold text-gray-800 text-[11px] truncate">{{ user.displayFullNameTh }}</span>
+                                    <span class="text-[9px] text-gray-400 font-mono truncate">{{ user.displayFullNameEn }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="px-4 py-2.5 align-middle text-[11px] text-gray-600 font-medium truncate">
+                            {{ user.email }}
+                        </td>
+
+                        <td class="px-4 py-2.5 align-middle">
+                            <span 
+                                class="px-2 py-0.5 rounded text-[9px] font-bold border inline-block whitespace-nowrap"
+                                :class="{
+                                    'bg-blue-50 text-blue-600 border-blue-100': user.roleId === 2,
+                                    'bg-pink-50 text-pink-600 border-pink-100': user.roleId === 4,
+                                    'bg-purple-50 text-purple-600 border-purple-100': user.roleId === 3
+                                }"
+                            >
+                                {{ getRoleLabel(user.roleId) }}
+                            </span>
+                        </td>
+
+                        <td class="px-4 py-2.5 align-middle text-center text-[10px] text-gray-500 font-mono">
+                            {{ user.branchNumber !== null ? user.branchNumber : '-' }}
+                        </td>
+
+                        <td class="px-4 py-2.5 align-middle text-center">
+                            <span 
+                                class="w-2 h-2 rounded-full inline-block mr-1"
+                                :class="user.status === 'ACTIVE' ? 'bg-green-500' : 'bg-red-500'"
+                            ></span>
+                            <span class="text-[10px] font-bold" :class="user.status === 'ACTIVE' ? 'text-green-600' : 'text-red-500'">
+                                {{ user.status }}
+                            </span>
+                        </td>
+
+                        <td class="px-4 py-2.5 align-middle text-[10px] text-gray-500 truncate">
+                            {{ user.createdBy }}
+                        </td>
+
+                        <td class="px-4 py-2.5 align-middle text-[10px] text-gray-500 font-mono">
+                            {{ user.createdAt }}
+                        </td>
+
+                        <td class="px-4 py-2.5 align-middle text-right pr-4">
+                            <div class="flex justify-end gap-1">
+                                <button 
+                                    @click="openReset2FAModal(user)" 
+                                    :disabled="user.status === 'SUSPENDED'"
+                                    class="p-1 rounded hover:bg-orange-50 text-orange-400 hover:text-orange-600 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                                    title="Reset 2FA"
+                                >
+                                    <ShieldExclamationIcon class="w-4 h-4" />
+                                </button>
+
+                                <button 
+                                    @click="openEditModal(user)" 
+                                    :disabled="user.roleId === 2 || user.status === 'SUSPENDED'"
+                                    class="p-1 rounded hover:bg-blue-50 text-blue-500 hover:text-blue-700 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                                    title="Edit"
+                                >
+                                    <PencilSquareIcon class="w-4 h-4" />
+                                </button>
+
+                                <button 
+                                    @click="confirmSuspend(user)"
+                                    :disabled="user.roleId === 2"
+                                    class="p-1 rounded hover:bg-red-50 text-red-400 hover:text-red-600 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                                    title="Delete/Suspend"
+                                >
+                                    <TrashIcon class="w-4 h-4" />
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <tr v-if="filteredUsers.length === 0 && !isLoading">
+                        <td colspan="8" class="h-64 text-center">
+                            <div class="flex flex-col items-center justify-center h-full text-gray-400 gap-2">
+                                <div class="bg-gray-50 p-3 rounded-full">
+                                    <InboxIcon class="w-8 h-8 text-gray-300" />
+                                </div>
+                                <span class="text-xs font-medium">ไม่พบข้อมูลผู้ใช้งาน</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
             
-            <div class="grid grid-cols-2 gap-4">
+            <div v-if="isLoading" class="absolute inset-0 bg-white/90 flex flex-col items-center justify-center z-20 backdrop-blur-[1px]">
+                <span class="animate-spin text-2xl mb-2 text-blue-600">⏳</span>
+                <span class="font-bold text-gray-600 text-xs tracking-wide">กำลังโหลดข้อมูล...</span>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="isModalOpen" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] backdrop-blur-sm">
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-md border border-gray-100 overflow-hidden transform transition-all scale-100">
+        
+        <div class="bg-gray-50 px-5 py-3 border-b border-gray-200 flex justify-between items-center">
+             <h3 class="font-bold text-sm text-gray-800">{{ isEditMode ? 'แก้ไขผู้ใช้งาน' : 'เพิ่มผู้ใช้งานใหม่' }}</h3>
+             <button @click="closeModal" class="text-gray-400 hover:text-red-500 transition"><XMarkIcon class="w-5 h-5" /></button>
+        </div>
+        
+        <div class="p-5 max-h-[80vh] overflow-y-auto custom-scrollbar">
+          <form @submit.prevent="handleSubmit" class="space-y-3">
+            
+            <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-sm font-bold mb-1">First Name (EN)</label>
-                <input v-model="form.firstName" type="text" class="w-full border p-2 rounded bg-gray-50" placeholder="Somchai" required />
+                <label class="block text-[10px] font-bold text-gray-600 mb-1">ชื่อจริง (ไทย) <span class="text-red-500">*</span></label>
+                <input v-model="form.firstNameTh" type="text" class="w-full border p-2 rounded-lg text-xs bg-gray-50 focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none" required />
               </div>
               <div>
-                <label class="block text-sm font-bold mb-1">Last Name (EN)</label>
-                <input v-model="form.lastName" type="text" class="w-full border p-2 rounded bg-gray-50" placeholder="Jaidee" required />
+                <label class="block text-[10px] font-bold text-gray-600 mb-1">นามสกุล (ไทย) <span class="text-red-500">*</span></label>
+                <input v-model="form.lastNameTh" type="text" class="w-full border p-2 rounded-lg text-xs bg-gray-50 focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none" required />
               </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-sm font-bold mb-1">ชื่อ (ไทย)</label>
-                <input v-model="form.firstNameTh" type="text" class="w-full border p-2 rounded bg-gray-50" placeholder="สมชาย" required />
+                <label class="block text-[10px] font-bold text-gray-600 mb-1">ชื่อจริง (อังกฤษ) <span class="text-red-500">*</span></label>
+                <input v-model="form.firstName" type="text" class="w-full border p-2 rounded-lg text-xs bg-gray-50 focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none" required />
               </div>
               <div>
-                <label class="block text-sm font-bold mb-1">นามสกุล (ไทย)</label>
-                <input v-model="form.lastNameTh" type="text" class="w-full border p-2 rounded bg-gray-50" placeholder="ใจดี" required />
+                <label class="block text-[10px] font-bold text-gray-600 mb-1">นามสกุล (อังกฤษ) <span class="text-red-500">*</span></label>
+                <input v-model="form.lastName" type="text" class="w-full border p-2 rounded-lg text-xs bg-gray-50 focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none" required />
               </div>
             </div>
             
             <div>
-              <label class="block text-sm font-bold mb-1">Email</label>
-              <input 
-                v-model="form.email" 
-                type="email" 
-                :class="isEditMode ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-gray-50'"
-                class="w-full border p-2 rounded" 
-                required 
-                :disabled="isEditMode"
-              />
+              <label class="block text-[10px] font-bold text-gray-600 mb-1">Email <span class="text-red-500">*</span></label>
+              <input v-model="form.email" type="email" :disabled="isEditMode" :class="isEditMode ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-gray-50'" class="w-full border p-2 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 outline-none" required />
             </div>
 
-            <div v-if="!isEditMode">
-               <PasswordInput 
-                v-model="form.password" 
-                label="Password" 
-                placeholder="******" 
-                @input="formError = ''" 
-              />
-              <div class="mt-2 mb-4">
-                 <PasswordRules 
-                    :password="form.password" 
-                    @check-valid="(isValid) => isPasswordValid = isValid"
-                 />
-              </div>
-              <PasswordInput 
-                v-model="form.confirmPassword" 
-                label="Confirm Password" 
-                placeholder="ยืนยันรหัสผ่านอีกครั้ง" 
-                @input="formError = ''"
-              />
+            <div v-if="!isEditMode" class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+               <PasswordInput v-model="form.password" label="Password" placeholder="******" @input="formError = ''" class="mb-2" />
+               <PasswordRules :password="form.password" @check-valid="(isValid) => isPasswordValid = isValid" class="mb-2 text-[10px]" />
+               <PasswordInput v-model="form.confirmPassword" label="Confirm Password" placeholder="ยืนยันรหัสผ่าน" @input="formError = ''" />
             </div>
 
             <div>
-              <label class="block text-sm font-bold mb-1">Role</label>
-              <select v-model="form.roleId" class="w-full border p-2 rounded bg-gray-50 border-black" required>
-                <option value="" disabled>เลือก role</option>
-                <option v-for="role in displayedRoleOptions" :key="role.value" :value="role.value">
-                  {{ role.label }}
-                </option>
+              <label class="block text-[10px] font-bold text-gray-600 mb-1">Role <span class="text-red-500">*</span></label>
+              <select v-model="form.roleId" class="w-full border p-2 rounded-lg text-xs bg-gray-50 focus:ring-1 focus:ring-blue-500 outline-none" required>
+                <option value="" disabled>-- เลือก Role --</option>
+                <option v-for="role in displayedRoleOptions" :key="role.value" :value="role.value">{{ role.label }}</option>
               </select>
             </div>
 
             <div v-if="isBranchManagerSelected" class="animate-fade-in-down">
-              <label class="block text-sm font-bold mb-1 text-blue-600">เลขสาขา (Branch Number)</label>
-              <input 
-                v-model="form.branchNumber" 
-                @input="handleNumberInput"
-                type="text" 
-                class="w-full border p-2 rounded bg-blue-50 border-blue-300" 
-                placeholder="เช่น 102 (ตัวเลขเท่านั้น)" 
-                required
-              />
+              <label class="block text-[10px] font-bold text-blue-600 mb-1">เลขสาขา (Branch Number)</label>
+              <input v-model="form.branchNumber" @input="handleNumberInput" type="text" class="w-full border p-2 rounded-lg text-xs bg-blue-50 border-blue-200 focus:ring-1 focus:ring-blue-500 outline-none font-mono" placeholder="เช่น 102" required />
             </div>
 
-            <div v-if="formError" class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm font-bold flex items-center justify-center gap-2 animate-pulse">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                </svg>
-                {{ formError }}
+            <div v-if="formError" class="text-red-500 text-[10px] font-bold flex items-center gap-1 animate-pulse bg-red-50 p-2 rounded border border-red-100">
+                <ExclamationTriangleIcon class="w-4 h-4" /> {{ formError }}
             </div>
 
-            <div class="flex gap-4 mt-6 pt-2">
-              <button type="button" @click="closeModal" class="flex-1 bg-red-500 text-white font-bold py-2 rounded-full hover:bg-red-600">
-                Cancel
-              </button>
-              <button type="submit" class="flex-1 bg-green-500 text-white font-bold py-2 rounded-full hover:bg-green-600">
-                {{ isEditMode ? 'Save Changes' : 'Create User' }}
-              </button>
+            <div class="flex gap-3 pt-2">
+              <button type="button" @click="closeModal" class="flex-1 bg-white border border-gray-300 text-gray-600 font-bold py-2 rounded-lg hover:bg-gray-50 text-xs">ยกเลิก</button>
+              <button type="submit" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 text-xs shadow-sm">{{ isEditMode ? 'บันทึกแก้ไข' : 'สร้างบัญชี' }}</button>
             </div>
           </form>
         </div>
       </div>
     </div>
     
-    <div v-if="showSuccessAlert" class="fixed inset-0 flex items-center justify-center z-[60]">
-      <div class="bg-blue-200 bg-opacity-90 p-10 rounded-xl shadow-2xl text-center border-4 border-blue-300 animate-bounce-in">
-        <div class="w-24 h-24 bg-transparent border-4 border-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-16 h-16 text-green-600">
-             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-           </svg>
-        </div>
-        <h2 class="text-2xl font-bold text-green-800 tracking-wide">{{ successMessage }}</h2>
-      </div>
-    </div>
-    
-    <div v-if="isSuspendModalOpen" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[70]">
-      <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-bounce-in">
-        <div class="bg-gray-700 text-white p-3 flex justify-between items-center">
-            <h3 class="font-bold text-lg ml-2">ยืนยันทำรายการ</h3>
-            <button @click="closeSuspendModal" class="bg-red-600 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-        </div>
+    <div v-if="isReset2FAModalOpen" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[70] backdrop-blur-sm">
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-bounce-in border border-gray-100">
         <div class="p-6 text-center">
-             <div class="flex justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+             <div class="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ShieldExclamationIcon class="w-8 h-8 text-orange-500" />
              </div>
-             <h4 class="text-red-500 font-bold text-xl mb-2">ต้องการระงับบัญชี</h4>
-             <p class="text-gray-800 text-lg font-bold">{{ userToSuspend?.name }}</p>
-             <p class="text-gray-600 mb-6">Role : {{ userToSuspend?.role }}</p>
-             <p class="font-bold text-gray-800 mb-6">ระงับบัญชีผู้ใช้ ใช่หรือไม่</p>
-             <div class="flex justify-center gap-4">
-                 <button @click="closeSuspendModal" class="bg-red-500 text-white px-8 py-2 rounded hover:bg-red-600 font-bold">ยกเลิก</button>
-                 <button @click="handleSuspendConfirm" class="bg-green-500 text-white px-8 py-2 rounded hover:bg-green-600 font-bold">ยืนยัน</button>
+             <h4 class="text-gray-800 font-bold text-base mb-1">ยืนยัน Reset 2FA?</h4>
+             <p class="text-gray-500 text-xs mb-4">
+                คุณต้องการรีเซ็ต 2FA ของ <br>
+                <span class="font-bold text-gray-800">{{ userToReset2FA?.displayFullNameEn }}</span> ใช่หรือไม่? <br>
+                <span class="text-[10px] text-red-500">(User จะต้องสแกน QR Code ใหม่ในการ Login ครั้งถัดไป)</span>
+             </p>
+             
+             <div class="text-left mb-4">
+                <label class="block text-[10px] font-bold text-gray-600 mb-1">กรุณากรอกรหัสผ่านของคุณ (Admin) เพื่อยืนยัน</label>
+                <PasswordInput v-model="adminConfirmPassword" placeholder="Admin Password" class="text-xs" />
+             </div>
+
+             <div class="flex justify-center gap-3">
+                 <button @click="closeReset2FAModal" class="flex-1 bg-white border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 font-bold text-xs">ยกเลิก</button>
+                 <button 
+                    @click="handleReset2FAConfirm" 
+                    :disabled="!adminConfirmPassword"
+                    class="flex-1 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 font-bold text-xs shadow-orange-200 shadow-md disabled:opacity-50"
+                 >
+                    ยืนยัน
+                 </button>
              </div>
         </div>
       </div>
     </div>
+
+    <div v-if="showSuccessAlert" class="fixed inset-0 flex items-center justify-center z-[70] pointer-events-none">
+       <div class="bg-white/90 backdrop-blur p-6 rounded-2xl shadow-xl border border-green-100 text-center animate-bounce-in flex flex-col items-center gap-3">
+         <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+            <CheckIcon class="w-6 h-6 text-green-600" />
+         </div>
+         <h2 class="text-sm font-bold text-gray-800">{{ successMessage }}</h2>
+       </div>
+    </div>
     
-    <div v-if="showSuspendSuccess" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[80]">
-      <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-bounce-in">
-         <div class="bg-gray-700 text-white p-3 flex justify-between items-center">
-            <h3 class="font-bold text-lg ml-2">ยืนยันทำรายการ</h3>
-            <button @click="showSuspendSuccess = false" class="bg-red-600 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700">
-               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-        </div>
-        <div class="p-8 text-center">
-            <p class="text-gray-800 text-lg font-bold mb-1">{{ userToSuspend?.name }}</p>
-            <p class="text-gray-600 mb-4">Role : {{ userToSuspend?.role }}</p>
-            <h4 class="text-black font-bold text-lg mb-4">ได้ระงับบัญชีผู้ใช้แล้ว</h4>
-            <div class="flex justify-center">
-                <div class="rounded-full border-4 border-green-600 p-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7" />
-                    </svg>
-                </div>
-            </div>
+    <div v-if="isSuspendModalOpen" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[70] backdrop-blur-sm">
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-bounce-in border border-gray-100">
+        <div class="p-6 text-center">
+             <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ExclamationTriangleIcon class="w-8 h-8 text-red-500" />
+             </div>
+             <h4 class="text-gray-800 font-bold text-base mb-1">ยืนยันการระงับบัญชี?</h4>
+             <p class="text-gray-500 text-xs mb-4">คุณต้องการระงับบัญชี <span class="font-bold text-gray-800">{{ userToSuspend?.name }}</span> ใช่หรือไม่</p>
+             <div class="flex justify-center gap-3">
+                 <button @click="closeSuspendModal" class="bg-white border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 font-bold text-xs">ยกเลิก</button>
+                 <button @click="handleSuspendConfirm" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 font-bold text-xs shadow-red-200 shadow-md">ยืนยันระงับ</button>
+             </div>
         </div>
       </div>
     </div>
@@ -298,6 +324,19 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { 
+  MagnifyingGlassIcon, 
+  PlusIcon, 
+  PencilSquareIcon, 
+  TrashIcon, 
+  XMarkIcon,
+  CheckIcon,
+  ExclamationTriangleIcon,
+  InboxIcon,
+  UserCircleIcon,
+  ShieldExclamationIcon // ✅ เพิ่ม Icon
+} from '@heroicons/vue/24/outline' 
+
 import PasswordInput from '@/components/PasswordInput.vue'
 import PasswordRules from '@/components/PasswordRules.vue'
 import { 
@@ -305,10 +344,10 @@ import {
   searchWebUsers, 
   createWebUser, 
   updateWebUser, 
-  deleteWebUser 
+  deleteWebUser,
+  adminResetTwoFactor // ✅ Import service ใหม่
 } from '@/services/adminService'
 
-// Role Master Data (เก็บไว้ใช้อ้างอิงชื่อ)
 const masterRoleOptions = [
   { label: 'Admin', value: 2 },  
   { label: 'Call Center', value: 4 }, 
@@ -317,6 +356,7 @@ const masterRoleOptions = [
 
 const users = ref([])
 const searchInput = ref('')
+const isLoading = ref(false)
 const isModalOpen = ref(false)
 const isEditMode = ref(false)
 const editingUserId = ref(null)
@@ -324,23 +364,30 @@ const showSuccessAlert = ref(false)
 const successMessage = ref('')
 const isSuspendModalOpen = ref(false)
 const userToSuspend = ref(null)
-const showSuspendSuccess = ref(false)
 const formError = ref('') 
 const isPasswordValid = ref(false)
 
+// ✅ ตัวแปรสำหรับ Reset 2FA
+const isReset2FAModalOpen = ref(false)
+const userToReset2FA = ref(null)
+const adminConfirmPassword = ref('')
+
+const currentRoleFilter = ref('ALL')
+
 const form = ref({
-  firstName: '',
-  lastName: '',
-  firstNameTh: '',
-  lastNameTh: '',
-  email: '',
-  password: '',
-  confirmPassword: '', 
-  roleId: '',       
-  branchNumber: ''
+  firstName: '', lastName: '',
+  firstNameTh: '', lastNameTh: '',
+  email: '', password: '', confirmPassword: '', 
+  roleId: '', branchNumber: ''
 })
 
-// Logic: Role Options ที่จะแสดงใน Dropdown (ถ้าแก้ไข จะไม่ให้เลือก Admin)
+const filteredUsers = computed(() => {
+    if (currentRoleFilter.value === 'ALL') {
+        return users.value
+    }
+    return users.value.filter(user => user.roleId === currentRoleFilter.value)
+})
+
 const displayedRoleOptions = computed(() => {
   if (isEditMode.value) {
     return masterRoleOptions.filter(role => role.value !== 2)
@@ -348,9 +395,13 @@ const displayedRoleOptions = computed(() => {
   return masterRoleOptions
 })
 
-const getRoleName = (id) => {
+const getRoleLabel = (id) => {
   const found = masterRoleOptions.find(r => r.value === id)
-  return found ? found.label : 'Unknown'
+  if (found) {
+      if (id === 3) return 'Branch Manager' 
+      return found.label 
+  }
+  return 'Unknown'
 }
 
 const isBranchManagerSelected = computed(() => {
@@ -358,62 +409,69 @@ const isBranchManagerSelected = computed(() => {
 })
 
 const fetchUsers = async () => {
+  isLoading.value = true
   try {
     const response = await getWebUsers()
     mapUsersData(response.data)
   } catch (error) {
     console.error('Fetch error:', error)
+  } finally {
+    isLoading.value = false
   }
 }
 
 const handleSearch = async () => {
-  if (!searchInput.value) {
+  const query = searchInput.value.toLowerCase().trim()
+  if (!query) {
     fetchUsers()
     return
   }
+  isLoading.value = true
   try {
-    const response = await searchWebUsers(searchInput.value)
+    const response = await searchWebUsers(query)
     mapUsersData(response.data)
   } catch (error) {
     console.error('Search error:', error)
+  } finally {
+    isLoading.value = false
   }
 }
 
 const mapUsersData = (data) => {
+  if (!Array.isArray(data)) {
+      users.value = []
+      return
+  }
+
   users.value = data.map(u => {
-    
-    // จัดการชื่ออังกฤษ
-    const fullName = u.fullName || ''
-    const nameParts = fullName.trim().split(' ')
-    const fName = nameParts[0] || ''
-    const lName = nameParts.slice(1).join(' ') || ''
-    
-    // จัดการ Status
-    const isUserActive = u.status === 'ACTIVE'
+    let thName = u.fullName || u.fullNameTh || ''
+    if (!thName && u.firstNameTh && u.lastNameTh) {
+        thName = `${u.firstNameTh} ${u.lastNameTh}`
+    }
+
+    let enName = u.fullNameEng || u.fullNameEn || ''
+    if (!enName) {
+        if (u.firstName && u.lastName) {
+            enName = `${u.firstName} ${u.lastName}`
+        } else {
+            enName = '-'
+        }
+    }
 
     return {
-      id: u.userId, 
-      
-      // ข้อมูลสำหรับ Form Edit
-      firstName: fName,
-      lastName: lName,
+      id: u.userId || u.id,
+      displayFullNameTh: thName || '-', 
+      displayFullNameEn: enName, 
+      firstName: u.firstName || '',
+      lastName: u.lastName || '',
       firstNameTh: u.firstNameTh || '',
       lastNameTh: u.lastNameTh || '',
-      
-      // ข้อมูลสำหรับแสดงผล
-      name: fullName, 
-      nameTh: `${u.firstNameTh || ''} ${u.lastNameTh || ''}`.trim(),
-      
-      email: u.email,
-      role: getRoleName(u.roleId),
-      roleId: u.roleId, // เก็บ ID ไว้เช็คสิทธิ์ (Admin=2)
-      branchNumber: u.branchCode || '-',
-      
-      status: isUserActive ? 'Active' : 'Suspended',
-      
-      lastLogin: u.lastLogin || '-',
-      createdBy: u.createdBy || '-',
-      createdAt: u.createdAt || '-'
+      email: u.email || '-',
+      roleId: u.roleId,
+      branchNumber: u.branchCode || null,
+      status: u.status, 
+      createdBy: u.createdBy || 'System',
+      createdAt: u.createdAt || '-',
     }
   })
 }
@@ -425,7 +483,6 @@ const handleNumberInput = (e) => {
 const openAddModal = () => {
   isEditMode.value = false
   formError.value = ''
-  isPasswordValid.value = false
   form.value = { 
     firstName: '', lastName: '', 
     firstNameTh: '', lastNameTh: '',
@@ -443,8 +500,8 @@ const openEditModal = (user) => {
   form.value = { 
     firstName: user.firstName, 
     lastName: user.lastName,
-    firstNameTh: user.firstNameTh || '',
-    lastNameTh: user.lastNameTh || '',
+    firstNameTh: user.firstNameTh,
+    lastNameTh: user.lastNameTh,
     email: user.email, 
     password: '', 
     confirmPassword: '',
@@ -494,7 +551,7 @@ const handleSubmit = async () => {
     closeModal()
     showSuccessAlert.value = true
     fetchUsers() 
-    setTimeout(() => { showSuccessAlert.value = false }, 3000)
+    setTimeout(() => { showSuccessAlert.value = false }, 2000)
 
   } catch (error) {
     console.error('Submit Error:', error)
@@ -502,8 +559,40 @@ const handleSubmit = async () => {
   }
 }
 
+// ✅ Functions สำหรับ Reset 2FA
+const openReset2FAModal = (user) => {
+    userToReset2FA.value = user
+    adminConfirmPassword.value = '' // ล้างรหัสผ่านเก่า
+    isReset2FAModalOpen.value = true
+}
+
+const closeReset2FAModal = () => {
+    isReset2FAModalOpen.value = false
+    userToReset2FA.value = null
+    adminConfirmPassword.value = ''
+}
+
+const handleReset2FAConfirm = async () => {
+    if (!userToReset2FA.value || !adminConfirmPassword.value) return
+
+    try {
+        await adminResetTwoFactor(userToReset2FA.value.id, adminConfirmPassword.value)
+        
+        closeReset2FAModal()
+        showSuccessAlert.value = true
+        successMessage.value = 'รีเซ็ต 2FA สำเร็จ'
+        setTimeout(() => { showSuccessAlert.value = false }, 2000)
+    } catch (error) {
+        console.error("Reset 2FA Error:", error)
+        alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || 'รหัสผ่านไม่ถูกต้อง หรือ Server Error'))
+    }
+}
+
 const confirmSuspend = (user) => {
-  userToSuspend.value = user
+  userToSuspend.value = {
+      ...user,
+      name: user.displayFullNameEn 
+  }
   isSuspendModalOpen.value = true
 }
 
@@ -514,15 +603,14 @@ const closeSuspendModal = () => {
 
 const handleSuspendConfirm = async () => {
   if (!userToSuspend.value) return
-
   try {
     await deleteWebUser(userToSuspend.value.id)
     closeSuspendModal()
-    showSuspendSuccess.value = true
+    showSuccessAlert.value = true
+    successMessage.value = 'ระงับบัญชีเรียบร้อยแล้ว'
     fetchUsers()
-    setTimeout(() => { showSuspendSuccess.value = false }, 3000)
+    setTimeout(() => { showSuccessAlert.value = false }, 2000)
   } catch (error) {
-    console.error('Suspend Error:', error)
     alert('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || 'Error'))
     closeSuspendModal()
   }
@@ -534,21 +622,15 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.animate-fade-in-down {
-  animation: fadeInDown 0.3s ease-out;
+/* Custom Scrollbar for Webkit */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
 }
-
-@keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
 }
-
-.animate-bounce-in {
-  animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-}
-
-@keyframes bounceIn {
-  0% { transform: scale(0); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 10px;
 }
 </style>

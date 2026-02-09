@@ -1,67 +1,35 @@
 <template>
-  <div class="mb-4">
-    <!-- label -->
-    <label class="block text-gray-900 text-sm font-bold mb-2">
-      {{ label }}
-    </label>
-
-    <div class="relative">
-      <input
-        :type="showPassword ? 'text' : 'password'"
-        :value="modelValue"
-        @input="$emit('update:modelValue', $event.target.value)"
-        :placeholder="placeholder"
-        class="w-full p-2 border rounded
-               focus:outline-none focus:ring-2 focus:ring-blue-500
-               pr-10"
-      />
-
-      <button
-        type="button"
-        @click="togglePassword"
-        class="absolute right-3 top-2.5
-               text-gray-800 hover:text-blue-600
-               focus:outline-none"
-      >
-        <EyeSlashIcon
-          v-if="showPassword"
-          class="w-5 h-5"
-        />
-
-        <EyeIcon
-          v-else
-          class="w-5 h-5"
-        />
-      </button>
-    </div>
+  <div class="relative w-full">
+    <input
+      :type="showPassword ? 'text' : 'password'"
+      :value="modelValue"
+      @input="$emit('update:modelValue', $event.target.value)"
+      v-bind="$attrs"
+      class="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors bg-white text-gray-900 placeholder-gray-400"
+    />
+    
+    <button
+      type="button"
+      @click="showPassword = !showPassword"
+      class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none cursor-pointer"
+      tabindex="-1"
+    >
+      <EyeSlashIcon v-if="showPassword" class="h-4 w-4" />
+      <EyeIcon v-else class="h-4 w-4" />
+    </button>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+// ✅ Import ไอคอนเข้ามาใช้งาน
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 
-/* props */
 defineProps({
-  modelValue: String,
-  label: {
-    type: String,
-    default: 'Password'
-  },
-  placeholder: {
-    type: String,
-    default: '********'
-  }
+  modelValue: String
 })
 
-/* emit สำหรับ v-model */
 defineEmits(['update:modelValue'])
 
-/* state */
 const showPassword = ref(false)
-
-/* method */
-const togglePassword = () => {
-  showPassword.value = !showPassword.value
-}
 </script>

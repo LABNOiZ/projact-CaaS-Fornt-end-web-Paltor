@@ -1,6 +1,6 @@
 <template>
   <div class="flex gap-6 font-sans">
-    <SettingsSidebar basePath="/admin" />
+    <SettingsSidebar basePath="/callcenter" />
 
     <div class="flex-1">
       <h2 class="text-2xl font-bold mb-6">Settings</h2>
@@ -13,6 +13,5 @@
 
 <script setup>
 import SettingsSidebar from '@/components/SettingsSidebar.vue'
-// Import Component กลางเข้ามาใช้
 import UserProfileCard from '@/components/settings/UserProfileCard.vue' 
 </script>

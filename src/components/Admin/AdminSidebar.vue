@@ -1,71 +1,70 @@
 <template>
-  <aside class="w-64 bg-white shadow-md flex flex-col z-10">
-    <div class="h-16 flex items-center justify-center border-b border-gray-100 mb-2">
-      <h1 class="text-xl font-bold text-black">Admin</h1>
-    </div>
-
-    <nav class="flex-1 overflow-y-auto py-2">
-      
-      <div class="px-6 mb-2 mt-2 text-xs font-bold text-blue-600 tracking-wide">
+  <aside class="w-full h-full bg-white/5 backdrop-blur-xl border-r border-white/10 shadow-2xl flex flex-col font-sans">
+    
+    <nav class="flex-1 overflow-y-auto py-6">
+      <div class="px-6 mb-3 text-xs font-bold text-blue-600/80 tracking-widest uppercase">
         ภาพรวมระบบ
       </div>
       
-      <ul class="space-y-1 mb-6">
+      <ul class="space-y-2 mb-8">
         <li>
           <router-link 
             to="/admin/dashboard" 
-            class="flex items-center px-6 py-3 mx-2 rounded-lg transition-colors duration-200 text-gray-600 hover:bg-blue-50 hover:text-blue-600"
-            active-class="bg-blue-50 text-blue-600 font-bold"
+            class="flex items-center px-6 py-3 mx-3 rounded-xl transition-all duration-200 group"
+            active-class="bg-blue-600 text-white shadow-md shadow-blue-500/30"
+            :class="!$route.path.includes('/dashboard') ? 'text-gray-600 hover:bg-white/50 hover:text-blue-600' : ''"
           >
-            <HomeIcon class="h-5 w-5 mr-3" />
-            <span class="text-sm">Dashboard</span>
+            <HomeIcon class="h-5 w-5 mr-3 transition-transform group-hover:scale-110" />
+            <span class="text-sm font-medium">Dashboard</span>
           </router-link>
         </li>
 
         <li>
           <router-link 
             to="/admin/web-users" 
-            class="flex items-center px-6 py-3 mx-2 rounded-lg transition-colors duration-200 text-gray-600 hover:bg-blue-50 hover:text-blue-600"
-            active-class="bg-blue-50 text-blue-600 font-bold"
+            class="flex items-center px-6 py-3 mx-3 rounded-xl transition-all duration-200 group"
+            active-class="bg-blue-600 text-white shadow-md shadow-blue-500/30"
+            :class="!$route.path.includes('/web-users') ? 'text-gray-600 hover:bg-white/50 hover:text-blue-600' : ''"
           >
-            <GlobeAltIcon class="h-5 w-5 mr-3" />
-            <span class="text-sm">ผู้ใช้งาน web</span>
+            <GlobeAltIcon class="h-5 w-5 mr-3 transition-transform group-hover:scale-110" />
+            <span class="text-sm font-medium">ผู้ใช้งาน Web</span>
           </router-link>
         </li>
 
         <li>
           <router-link 
             to="/admin/admin-history" 
-            class="flex items-center px-6 py-3 mx-2 rounded-lg transition-colors duration-200 text-gray-600 hover:bg-blue-50 hover:text-blue-600"
-            active-class="bg-blue-50 text-blue-600 font-bold"
+            class="flex items-center px-6 py-3 mx-3 rounded-xl transition-all duration-200 group"
+            active-class="bg-blue-600 text-white shadow-md shadow-blue-500/30"
+            :class="!$route.path.includes('/admin-history') ? 'text-gray-600 hover:bg-white/50 hover:text-blue-600' : ''"
           >
-            <ClockIcon class="h-5 w-5 mr-3" />
-            <span class="text-sm">ประวัติแอดมิน</span>
+            <ClockIcon class="h-5 w-5 mr-3 transition-transform group-hover:scale-110" />
+            <span class="text-sm font-medium">ประวัติแอดมิน</span>
           </router-link>
         </li>
       </ul>
 
-      <div class="px-6 mb-2 text-xs font-bold text-blue-600 uppercase tracking-wide">
+      <div class="px-6 mb-3 text-xs font-bold text-blue-600/80 tracking-widest uppercase">
           การตั้งค่า
       </div>
       
-      <ul class="space-y-1">
+      <ul class="space-y-2">
           <li>
              <router-link 
                  to="/admin/settings/profile"
-                 class="flex items-center px-6 py-3 mx-2 rounded-lg transition-colors duration-200"
-                 :class="isSettings ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'"
+                 class="flex items-center px-6 py-3 mx-3 rounded-xl transition-all duration-200 group"
+                 :class="isSettings ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' : 'text-gray-600 hover:bg-white/50 hover:text-blue-600'"
               >
-                  <Cog6ToothIcon class="h-5 w-5 mr-3" />
-                  <span class="text-sm">ตั้งค่า</span>
+                  <Cog6ToothIcon class="h-5 w-5 mr-3 transition-transform group-hover:scale-110" />
+                  <span class="text-sm font-medium">ตั้งค่าส่วนตัว</span>
               </router-link>
           </li>
       </ul>
     </nav>
 
-    <div class="p-4 border-t border-gray-100">
-      <button @click="logout" class="w-full bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition text-sm font-bold shadow-sm">
-        ออกจากระบบ
+    <div class="p-4 border-t border-white/40 bg-white/30 backdrop-blur-sm">
+      <button @click="logout" class="w-full bg-red-50 text-red-600 py-3 rounded-xl hover:bg-red-500 hover:text-white transition-all duration-200 text-sm font-bold shadow-sm flex justify-center items-center gap-2 group">
+        <span>ออกจากระบบ</span>
       </button>
     </div>
   </aside>
@@ -74,26 +73,19 @@
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
 import { computed } from 'vue'
-
-// Import ไอคอนมาไว้ที่นี่แทน
-import { 
-  HomeIcon, 
-  GlobeAltIcon, 
-  ClockIcon, 
-  Cog6ToothIcon 
-} from '@heroicons/vue/24/outline'
+import { HomeIcon, GlobeAltIcon, ClockIcon, Cog6ToothIcon } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
-const route = useRoute() 
+const route = useRoute()
 
-// Logic การเช็ค Active Link ย้ายมาอยู่ที่นี่
 const isSettings = computed(() => {
   return route.path.includes('/settings')
 })
 
-// Logic Logout ย้ายมาอยู่ที่นี่
 const logout = () => {
-  localStorage.removeItem('token') 
+  // ✅ Fixed: Use sessionStorage.clear() to match your Auth logic
+  sessionStorage.clear()
+  
   router.push('/login')
 }
 </script>
