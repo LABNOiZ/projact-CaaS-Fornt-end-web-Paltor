@@ -18,7 +18,7 @@
                     @input="handleNameInput"
                     @keyup.enter="handleSearch"
                     type="text" 
-                    placeholder="เช่น สมชาย ใจดี"
+                    placeholder="กรอกชื่อนามสกุลเป็นภาษาไทย"
                     class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 transition h-[38px] bg-gray-50 focus:bg-white"
                     :class="{'border-red-300 focus:ring-red-200': isError && !searchForm.name && !searchForm.idCard}"
                 />
@@ -234,7 +234,7 @@ const handleNameInput = (e) => {
     if(val.startsWith(' ')) val = val.trimStart()
     val = val.replace(/\s{2,}/g, ' ')
     searchForm.name = val
-    // ✅ แก้ไข: ไม่ล้างค่า idCard แล้ว เพื่อให้กรอกคู่กันได้
+    //  แก้ไข: ไม่ล้างค่า idCard แล้ว เพื่อให้กรอกคู่กันได้
     isError.value = false
 }
 
@@ -249,7 +249,7 @@ const handleIdCardInput = (e) => {
     if (val.length > 12) formatted += '-' + val.slice(12, 13)
     
     searchForm.idCard = formatted
-    // ✅ แก้ไข: ไม่ล้างค่า name แล้ว
+    //  แก้ไข: ไม่ล้างค่า name แล้ว
     isError.value = false
 }
 
@@ -267,7 +267,7 @@ const handleSearch = async () => {
     currentPage.value = 1 
 
     try {
-        // ✅ แก้ไข: สร้าง Payload ที่ส่งไปทั้งคู่ (ถ้ามีค่า)
+        //  แก้ไข: สร้าง Payload ที่ส่งไปทั้งคู่ (ถ้ามีค่า)
         const payload = {
             queryCitizenId: searchForm.idCard ? searchForm.idCard.trim().replace(/-/g, '') : '',
             queryFullNameTh: searchForm.name ? searchForm.name.trim() : ''

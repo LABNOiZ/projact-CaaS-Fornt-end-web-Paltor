@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-gray-900">
+  <div class="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-gray-900 font-sans p-4">
     
     <div 
       class="absolute inset-0 z-0"
@@ -101,7 +101,9 @@
           </button>
 
           <div class="text-center pt-1">
-            <a href="#" class="text-xs text-blue-200 hover:text-white hover:underline transition-colors">Forgot password?</a>
+            <router-link to="/forgot-password" class="text-xs text-blue-200 hover:text-white hover:underline transition-colors">
+                Forgot password?
+            </router-link>
           </div>
         </form>
       </div>
@@ -169,12 +171,16 @@ const handleLogin = async () => {
         const token = data.token || data.accessToken
         sessionStorage.setItem('token', token)
         
+        // 🔹 เก็บ Refresh Token (ถ้ามี) สำหรับ Silent Refresh
+        if (data.refreshToken) {
+            sessionStorage.setItem('refreshToken', data.refreshToken)
+        }
+        
         // หา Role ID
         let userRole = data.roleId || data.role
 
         if (!userRole) {
             console.log("Fetching User Profile...")
-            //  ใช้ userService แทน adminService
             const profileRes = await userService.getProfile()
             userRole = Number(profileRes.data.roleId)
         }

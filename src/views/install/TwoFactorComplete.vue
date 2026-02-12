@@ -26,20 +26,14 @@
                 เสร็จสมบูรณ์!
             </h2>
             
-            <p class="text-blue-100/80 text-sm mb-8 leading-relaxed">
+            <p class="text-blue-100/80 text-sm mb-6 leading-relaxed">
                 ตั้งค่า 2FA เรียบร้อยแล้ว<br>
                 บัญชีของคุณพร้อมใช้งาน
             </p>
 
-            <button 
-                @click="finishAndLogout" 
-                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500
-                text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-900/40 transform 
-                hover:-translate-y-0.5 transition-all duration-200 flex justify-center items-center gap-2"
-            >
-                <span>เข้าสู่ระบบใหม่</span>
-                <ArrowRightOnRectangleIcon class="w-5 h-5" />
-            </button>
+            <p class="text-blue-300 text-xs font-medium animate-pulse">
+                กำลังกลับไปหน้าเข้าสู่ระบบใน {{ countdown }} วินาที...
+            </p>
             
         </div>
     </div>
@@ -47,17 +41,31 @@
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router' 
 import bgLogin from '@/assets/bg-login_1.png'
-import { CheckIcon, ArrowRightOnRectangleIcon } from '@heroicons/vue/24/solid'
+import { CheckIcon } from '@heroicons/vue/24/solid' // เอา Icon ปุ่มออกแล้ว
 
 const router = useRouter()
+const countdown = ref(5) 
+let timer = null
 
 const finishAndLogout = () => {
-  //  ล้าง Session ทั้งหมดตรงนี้ (Logout)
+  if (timer) clearInterval(timer)
   sessionStorage.clear()
-
-  // ดีดกลับไปหน้า Login เพื่อให้ User Login เอง
   router.push('/login')
 }
+
+onMounted(() => {
+  timer = setInterval(() => {
+    countdown.value--
+    if (countdown.value <= 0) {
+      finishAndLogout()
+    }
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 </script>

@@ -1,29 +1,37 @@
 <template>
-  <div class="text-xs space-y-1 mt-2 transition-all duration-200">
-    <p :class="validation.minLength ? 'text-green-600 font-bold' : 'text-gray-500'">
-      <span v-if="validation.minLength">✅</span><span v-else>⚪</span> ตั้งรหัสอย่างน้อย 8 ตัว
-    </p>
+  <div class="text-xs space-y-1.5 mt-2 transition-all duration-200 font-medium">
+    
+    <div class="flex items-center gap-2" :class="validation.minLength ? 'text-green-600' : 'text-black'">
+      <component :is="validation.minLength ? CheckCircleIcon : XCircleIcon" class="w-4 h-4 shrink-0" />
+      <span>ตั้งรหัสอย่างน้อย 8 ตัว</span>
+    </div>
 
-    <p :class="validation.hasUpper ? 'text-green-600 font-bold' : 'text-gray-500'">
-      <span v-if="validation.hasUpper">✅</span><span v-else>⚪</span> มี A-Z อย่างน้อย 1 ตัว (ตัวพิมพ์ใหญ่)
-    </p>
+    <div class="flex items-center gap-2" :class="validation.hasUpper ? 'text-green-600' : 'text-black'">
+      <component :is="validation.hasUpper ? CheckCircleIcon : XCircleIcon" class="w-4 h-4 shrink-0" />
+      <span>มี A-Z อย่างน้อย 1 ตัว (ตัวพิมพ์ใหญ่)</span>
+    </div>
 
-    <p :class="validation.hasLower ? 'text-green-600 font-bold' : 'text-gray-500'">
-      <span v-if="validation.hasLower">✅</span><span v-else>⚪</span> มี a-z อย่างน้อย 1 ตัว (ตัวพิมพ์เล็ก)
-    </p>
+    <div class="flex items-center gap-2" :class="validation.hasLower ? 'text-green-600' : 'text-black'">
+      <component :is="validation.hasLower ? CheckCircleIcon : XCircleIcon" class="w-4 h-4 shrink-0" />
+      <span>มี a-z อย่างน้อย 1 ตัว (ตัวพิมพ์เล็ก)</span>
+    </div>
 
-    <p :class="validation.hasNumber ? 'text-green-600 font-bold' : 'text-gray-500'">
-      <span v-if="validation.hasNumber">✅</span><span v-else>⚪</span> มี 0-9 อย่างน้อย 1 ตัว (ตัวเลข)
-    </p>
+    <div class="flex items-center gap-2" :class="validation.hasNumber ? 'text-green-600' : 'text-black'">
+      <component :is="validation.hasNumber ? CheckCircleIcon : XCircleIcon" class="w-4 h-4 shrink-0" />
+      <span>มี 0-9 อย่างน้อย 1 ตัว (ตัวเลข)</span>
+    </div>
 
-    <p :class="validation.hasSpecial ? 'text-green-600 font-bold' : 'text-gray-500'">
-      <span v-if="validation.hasSpecial">✅</span><span v-else>⚪</span> มีสัญลักษณ์พิเศษอย่างน้อย 1 ตัว (!@#$%)
-    </p>
+    <div class="flex items-center gap-2" :class="validation.hasSpecial ? 'text-green-600' : 'text-black'">
+      <component :is="validation.hasSpecial ? CheckCircleIcon : XCircleIcon" class="w-4 h-4 shrink-0" />
+      <span>มีสัญลักษณ์พิเศษอย่างน้อย 1 ตัว (!@#$%)</span>
+    </div>
+
   </div>
 </template>
 
 <script setup>
 import { computed, watch } from 'vue'
+import { CheckCircleIcon, XCircleIcon } from '@heroicons/vue/24/solid'
 
 const props = defineProps({
   password: {
@@ -32,7 +40,6 @@ const props = defineProps({
   }
 })
 
-// ส่งค่ากลับไปบอกว่า "ผ่าน" หรือ "ไม่ผ่าน"
 const emit = defineEmits(['check-valid'])
 
 const validation = computed(() => {
@@ -46,7 +53,6 @@ const validation = computed(() => {
   }
 })
 
-// คำนวณภาพรวมว่าผ่านทุกข้อไหม
 const isAllValid = computed(() => {
   return (
     validation.value.minLength &&
@@ -57,7 +63,6 @@ const isAllValid = computed(() => {
   )
 })
 
-// คอยดูค่า isAllValid ถ้าเปลี่ยนให้ส่งไปบอกหน้าหลักทันที
 watch(isAllValid, (newValue) => {
   emit('check-valid', newValue)
 }, { immediate: true }) 

@@ -21,7 +21,8 @@
                             @keyup.enter="handleSearch"
                             type="text" 
                             placeholder="พิมพ์ชื่อ-นามสกุล (ไทย)..."
-                            class="w-full pl-9 pr-3 py-1.5 text-xs bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white transition h-[36px]"
+                            class="w-full pl-9 pr-3 py-1.5 text-xs bg-gray-50 border border-gray-300 rounded-lg 
+                            focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white transition h-[36px]"
                         />
                     </div>
                     
@@ -232,8 +233,9 @@
 
             <div v-if="!isEditMode" class="bg-blue-50 p-3 rounded-lg border border-blue-100">
                <PasswordInput v-model="form.password" label="Password" placeholder="******" @input="formError = ''" class="mb-2" />
-               <PasswordRules :password="form.password" @check-valid="(isValid) => isPasswordValid = isValid" class="mb-2 text-[10px]" />
                <PasswordInput v-model="form.confirmPassword" label="Confirm Password" placeholder="ยืนยันรหัสผ่าน" @input="formError = ''" />
+               <PasswordRules :password="form.password" @check-valid="(isValid) => isPasswordValid = isValid" class="mb-2 text-[10px]" />
+               
             </div>
 
             <div>
@@ -334,7 +336,7 @@ import {
   ExclamationTriangleIcon,
   InboxIcon,
   UserCircleIcon,
-  ShieldExclamationIcon // ✅ เพิ่ม Icon
+  ShieldExclamationIcon 
 } from '@heroicons/vue/24/outline' 
 
 import PasswordInput from '@/components/PasswordInput.vue'
@@ -345,7 +347,7 @@ import {
   createWebUser, 
   updateWebUser, 
   deleteWebUser,
-  adminResetTwoFactor // ✅ Import service ใหม่
+  adminResetTwoFactor //  Import service ใหม่
 } from '@/services/adminService'
 
 const masterRoleOptions = [
@@ -367,7 +369,7 @@ const userToSuspend = ref(null)
 const formError = ref('') 
 const isPasswordValid = ref(false)
 
-// ✅ ตัวแปรสำหรับ Reset 2FA
+//  ตัวแปรสำหรับ Reset 2FA
 const isReset2FAModalOpen = ref(false)
 const userToReset2FA = ref(null)
 const adminConfirmPassword = ref('')

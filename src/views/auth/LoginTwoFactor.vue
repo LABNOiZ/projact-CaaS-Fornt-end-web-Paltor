@@ -31,26 +31,27 @@
           </div>
         </div>
 
-        <form @submit.prevent="handleVerify" class="space-y-5">
-          <div class="flex justify-between items-end px-1">
+        <form @submit.prevent="handleVerify" class="space-y-6">
+          <div class="flex justify-between items-end px-1 mb-2">
             <label class="text-xs font-bold text-blue-200 uppercase tracking-wider">One Time Code</label>
             <span class="text-[10px] font-bold text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded border border-blue-400/20">Step 2/2</span>
           </div>
 
-          <div>
-            <input 
-              v-model="otpCode" 
-              @input="handleInput"
-              type="text"
-              inputmode="numeric"
-              pattern="[0-9]*"        
-              autocomplete="one-time-code"
-              maxlength="6"
-              class="w-full rounded-xl border border-white/10 bg-white/10 p-3 text-center text-2xl font-mono 
-              tracking-[0.5em] text-white placeholder-white/10 focus:bg-white/20 focus:border-blue-300 
-              focus:ring-2 focus:ring-blue-400/30 focus:outline-none transition-all duration-300 backdrop-blur-sm shadow-inner"
-              :disabled="isLoading"
-            />
+          <div class="flex justify-center gap-2 md:gap-3">
+             <input 
+                v-for="(digit, index) in otpDigits"
+                :key="index"
+                v-model="otpDigits[index]"
+                type="text"
+                maxlength="1"
+                inputmode="numeric"
+                ref="otpInputs"
+                @input="handleOtpInput(index, $event)"
+                @keydown.delete="handleOtpDelete(index, $event)"
+                @paste="handleOtpPaste"
+                class="w-10 h-12 md:w-12 md:h-14 rounded-xl border border-white/10 bg-white/10 text-white text-2xl font-mono text-center focus:bg-white/20 focus:border-blue-300 focus:ring-2 focus:ring-blue-400/30 outline-none transition-all shadow-inner"
+                :disabled="isLoading"
+             />
           </div>
 
           <div v-if="isError" class="bg-red-500/20 border border-red-500/30 rounded-lg p-2.5 animate-pulse">
@@ -62,7 +63,7 @@
 
           <button 
             type="submit" 
-            :disabled="isLoading || otpCode.length !== 6"
+            :disabled="isLoading || otpDigits.join('').length < 6"
             class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500
            text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-900/40 transform 
            hover:-translate-y-0.5 active:scale-95 transition-all duration-200 disabled:opacity-50 
@@ -99,7 +100,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { authService } from '@/services/authService' 
 import { userService } from '@/services/userService' 
@@ -114,43 +115,64 @@ import { ArrowPathIcon } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
 
-const otpCode = ref('')
+// ✅ State สำหรับ OTP แยกช่อง
+const otpDigits = ref(['', '', '', '', '', '']) 
+const otpInputs = ref([]) 
+
 const isError = ref(false)
 const errorMessage = ref('')
 const isLoading = ref(false)
 const email = ref('') 
 
 onMounted(() => {
-  // OWASP: ตรวจสอบว่ามี Email ใน Session จริงหรือไม่ ถ้าไม่มีให้ดีดออกทันที
   const storedEmail = sessionStorage.getItem('auth_email')
   if (!storedEmail) {
     console.warn("Security Alert: Attempted to access 2FA page without email.")
-    router.replace('/login') // ใช้ replace แทน push เพื่อไม่ให้กด Back กลับมาได้
+    router.replace('/login') 
     return
   }
   email.value = storedEmail
+  // Focus ช่องแรก
+  nextTick(() => otpInputs.value[0]?.focus())
 })
 
-const handleInput = (e) => {
-  isError.value = false
-  errorMessage.value = ''
-  
-  // OWASP: Input Validation - อนุญาตเฉพาะตัวเลขเท่านั้น (Whitelist pattern)
-  let value = e.target.value.replace(/[^0-9]/g, '')
-  if (value.length > 6) {
-    value = value.slice(0, 6)
-  }
-  otpCode.value = value
+// --- Logic จัดการ Input ---
+const handleOtpInput = (index, event) => {
+    isError.value = false
+    errorMessage.value = ''
+    const val = event.target.value
+    if (val && index < 5) {
+        otpInputs.value[index + 1].focus()
+    }
+}
+
+const handleOtpDelete = (index, event) => {
+    if (!otpDigits.value[index] && index > 0) {
+        otpDigits.value[index - 1] = ''
+        otpInputs.value[index - 1].focus()
+    }
+}
+
+const handleOtpPaste = (event) => {
+    event.preventDefault()
+    const pastedData = event.clipboardData.getData('text').slice(0, 6).split('')
+    pastedData.forEach((char, index) => {
+        if (index < 6) otpDigits.value[index] = char
+    })
+    const lastIndex = Math.min(pastedData.length, 5)
+    nextTick(() => otpInputs.value[lastIndex].focus())
 }
 
 const handleVerify = async () => {
-  // OWASP: Fail Safe - ตรวจสอบเงื่อนไขก่อนเริ่ม Process
   if (!email.value) {
       router.replace('/login')
       return
   }
   
-  if (otpCode.value.length !== 6) {
+  // รวมค่า OTP
+  const otpCode = otpDigits.value.join('')
+
+  if (otpCode.length !== 6) {
       isError.value = true
       errorMessage.value = 'กรุณากรอกรหัส 6 หลัก'
       return
@@ -160,38 +182,34 @@ const handleVerify = async () => {
   isError.value = false
 
   try {
-    console.log(`Verifying 2FA for user...`) // ไม่ log email เพื่อ Privacy Logs
+    console.log(`Verifying 2FA for user...`) 
     
     // 1. Verify OTP
-    const response = await authService.verifyLogin2FA(email.value, otpCode.value)
+    const response = await authService.verifyLogin2FA(email.value, otpCode)
     const data = response.data
     
-    // ตรวจสอบ Token ว่ามีจริงไหม
     const token = data.token || data.accessToken
     if (!token) {
         throw new Error('Authentication Failed: No token received')
     }
 
-    // OWASP: Session Hygiene - เคลียร์ขยะเก่าก่อนเริ่ม Session ใหม่เสมอ
-    const tempEmail = email.value // เก็บไว้เช็ค installer
     sessionStorage.clear() 
-
-    // เริ่มต้น Session ใหม่
     sessionStorage.setItem('token', token)
     
+    // 🔹 เก็บ Refresh Token (เพิ่มตามที่คุณเคยขอก่อนหน้านี้)
+    if (data.refreshToken) {
+        sessionStorage.setItem('refreshToken', data.refreshToken)
+    }
+    
     try {
-        // 2. Role Determination (Secure Direct Access)
-        // พยายามใช้ Role ที่ Backend แนบมาให้ (ปลอดภัยที่สุดเพราะมาจาก Token Issuer)
         let userRole = data.roleId || data.role
 
-        // Fallback: ถ้าไม่มีจริงๆ ค่อยเรียก Profile (แต่ต้องระวัง 403)
         if (!userRole) {
             console.warn("Role missing in Auth Response, attempting fetch profile...")
             const profileRes = await userService.getProfile()
             userRole = profileRes.data.roleId
         }
         
-        // Type Casting เพื่อความปลอดภัยในการเปรียบเทียบ
         userRole = Number(userRole)
         
         if (!userRole) {
@@ -200,10 +218,8 @@ const handleVerify = async () => {
         
         sessionStorage.setItem('roleId', userRole)
 
-        // 3. Secure Routing (Client-Side Access Control)
-        // ตรวจสอบ Role และ Redirect ไปยัง Route ที่เหมาะสม
+        // Redirect
         if (userRole === 6) {
-             // ตรวจสอบเงื่อนไข Installer เพิ่มเติมเพื่อความชัวร์ (Optional)
              sessionStorage.setItem('is_installer', 'true')
              router.replace('/install/create-admin')
         } 
@@ -212,7 +228,6 @@ const handleVerify = async () => {
              else if (userRole === 4) router.replace('/callcenter/search-customer')
              else if (userRole === 3) router.replace('/branch/dashboard')
              else {
-                 // OWASP: Default Deny - ถ้า Role ไม่รู้จัก ห้ามให้เข้า
                  console.error("Security: Unknown Role ID detected:", userRole)
                  throw new Error('Access Denied: Invalid Role Permission')
              }
@@ -220,7 +235,6 @@ const handleVerify = async () => {
 
     } catch (innerError) {
         console.error("Authorization Error:", innerError)
-        // ถ้ามีปัญหาเรื่องสิทธิ์ ให้เคลียร์ Token ทันที เพื่อไม่ให้มี Session ค้าง
         sessionStorage.clear()
         throw new Error('ไม่สามารถระบุสิทธิ์การใช้งานได้ กรุณาติดต่อผู้ดูแลระบบ')
     }
@@ -228,18 +242,15 @@ const handleVerify = async () => {
   } catch (error) {
     console.error("Authentication Error:", error)
     isError.value = true
-    // OWASP: Error Handling - แยกประเภท Error 
+    
+    // Clear OTP ถ้าผิด
+    otpDigits.value = ['', '', '', '', '', '']
+    nextTick(() => otpInputs.value[0]?.focus())
+
     if (error.response && error.response.data) {
-        // Message จาก Backend ที่ตั้งใจส่งมา (เช่น OTP ผิด) แสดงได้
         errorMessage.value = error.response.data.message || 'รหัส OTP ไม่ถูกต้อง'
     } else {
-        // Generic Error สำหรับเคสอื่นๆ
         errorMessage.value = error.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ'
-    }
-    
-    // ถ้า Error รุนแรง ให้เคลียร์ค่าทิ้ง
-    if (!errorMessage.value.includes('รหัส OTP ไม่ถูกต้อง')) {
-       otpCode.value = ''
     }
     
   } finally {
@@ -248,7 +259,7 @@ const handleVerify = async () => {
 }
 
 const backToLogin = () => {
-  sessionStorage.clear() // Always clear session on explicit logout/back
+  sessionStorage.clear() 
   router.replace('/login')
 }
 </script>
